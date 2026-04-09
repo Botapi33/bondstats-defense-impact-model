@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>BondStats Terminal Pro Elite - Premium</title>
+<title>BondStats Terminal Pro Elite</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -157,21 +157,21 @@ display:none;
 display:block;
 }
 
-.premiumLive{
-display:inline-block;
-margin-bottom:14px;
-padding:6px 10px;
-border-radius:999px;
-background:#0b2a1b;
-color:#7ee2a8;
-font-size:12px;
-}
-
 .sectionText{
 margin-top:10px;
 font-size:12px;
 color:#94a3b8;
 line-height:1.6;
+}
+
+.freeBadge{
+display:inline-block;
+margin-bottom:14px;
+padding:6px 10px;
+border-radius:999px;
+background:#2a160b;
+color:#ffb36b;
+font-size:12px;
 }
 
 </style>
@@ -182,11 +182,9 @@ line-height:1.6;
 <div class="container">
 
 <h1>Defense Bond Impact Terminal</h1>
-<div class="premiumLive">Premium Version Active</div>
+<div class="freeBadge">Free Version</div>
 
 <div class="grid">
-
-<!-- LEFT PANEL -->
 
 <div class="panel">
 
@@ -216,15 +214,13 @@ line-height:1.6;
 
 <button onclick="run()">Run Model</button>
 <button onclick="shock()">Shock Scenario</button>
-<button onclick="upgrade()">Premium Active</button>
+<button onclick="upgrade()">Unlock Pro</button>
 
 <div class="sectionText">
-This file is already unlocked. The Premium panels below are live.
+This is the free version. Premium analytics are visible but locked.
 </div>
 
 </div>
-
-<!-- RIGHT PANEL -->
 
 <div class="panel">
 
@@ -259,18 +255,15 @@ This file is already unlocked. The Premium panels below are live.
 <div id="scenarioDetails" class="sectionText"></div>
 </div>
 
-<!-- ORIGINAL CHARTS (NOT REMOVED) -->
-
 <div class="charts">
 <canvas id="factors" width="500" height="200"></canvas>
 <canvas id="compareChart" width="500" height="200"></canvas>
 </div>
 
 <table id="table"></table>
-
 <div id="insight" class="sectionText"></div>
 
-<div id="proArea">
+<div id="proArea" class="lock">
 <h3>Advanced Analysis</h3>
 <div id="analysis" class="sectionText"></div>
 <div id="risk" class="sectionText"></div>
@@ -292,7 +285,7 @@ This file is already unlocked. The Premium panels below are live.
 
 <script>
 
-let pro=true;
+let pro = false;
 
 /* ===== NEW ===== */
 
@@ -324,8 +317,6 @@ let confidence=70-(i.liquidity==="Weak"?20:5);
 let regime=impact<40?"Stable":impact<70?"Adjustment":"Repricing";
 
 let signal=impact<30?"Weak":impact<60?"Building":"Strong";
-
-/* IMPROVED DECISION */
 
 let decision;
 if(impact>75){
@@ -415,7 +406,7 @@ if(score>50)return"Reduce duration, focus belly";
 return"Neutral positioning";
 }
 
-/* ===== ORIGINAL CHARTS ===== */
+/* ===== CHARTS ===== */
 
 function drawTimeline(score){
 
@@ -559,7 +550,7 @@ impact.innerText=Math.round(d.impact);
 confidence.innerText=Math.round(d.confidence);
 regime.innerText=d.regime;
 signal.innerText=d.signal;
-decision.innerText=d.decision;
+decision.innerText=pro ? d.decision : "Upgrade to Pro";
 
 drawTimeline(d.impact);
 drawCurve(d.impact);
@@ -567,76 +558,45 @@ drawFactors(d.impact);
 drawCompare(d.impact);
 buildTable(d.impact);
 
-/* INSIGHT */
-
 insight.innerHTML=`
 <b>Market Insight:</b><br>
 Supply drives yields before inflation.<br><br>
 <b>Positioning:</b> ${d.decision}
 `;
 
-/* PREMIUM CONTENT ALWAYS ACTIVE */
+/* FREE MODE: premium stays locked */
 
-let lb = liquidityBreakdown(i,d.impact);
-let ab = auctionBreakdown(i,d.impact);
-let y = yieldSim(d.impact);
-let stressScore = liquidityStressModel(i,d.impact);
-let auctionScore = auctionPressureModel(i,d.impact);
+proArea.classList.add("lock");
 
 analysis.innerHTML=`
-Market regime: ${d.regime}<br>
-Forward outlook: ${d.impact>60?"Aggressive repricing":"Gradual adjustment"}<br>
-Positioning Engine: ${positioning(d.impact)}
+Upgrade to Pro to unlock advanced market regime analysis,
+forward outlook, and positioning engine.
 `;
 
 risk.innerHTML=`
-Volatility: ${d.impact>60?"High":"Moderate"}<br>
-Liquidity: ${i.liquidity}<br>
-System Stability: ${lb.system}<br>
-Fragility Score: ${lb.fragilityScore}
+Upgrade to Pro to unlock volatility, liquidity, and system stability breakdown.
 `;
 
 compare.innerHTML=`
-Stress: ${Math.min(d.impact+20,100)}<br>
-Mild: ${Math.max(d.impact-15,0)}<br>
-Curve Shape: ${y.shape}<br>
-Front-End Yield: ${y.front}%<br>
-Long-End Yield: ${y.long}%
+Upgrade to Pro to unlock stress, mild, and yield-curve scenario outputs.
 `;
 
 liquidityStress.innerHTML=`
-Stress Score: ${stressScore}<br>
-Funding Pressure: ${stressScore>60?"High":"Moderate"}<br>
-Funding Value: ${lb.funding}<br>
-Dealer Balance: ${lb.dealer}<br>
-System Risk: ${lb.system}
+Upgrade to Pro to unlock liquidity stress score,
+funding pressure, dealer balance, and system risk.
 `;
 
 auctionPressure.innerHTML=`
-Auction Pressure: ${auctionScore}<br>
-Expected Issuance: ${ab.issuance}<br>
-Front-End Impact: ${ab.front}<br>
-Belly Impact: ${ab.belly}<br>
-Long-End Impact: ${ab.long}<br>
-Yield Impact: +${(auctionScore/10).toFixed(2)}%
+Upgrade to Pro to unlock auction pressure,
+issuance detail, front-end / belly / long-end impact, and yield shock.
 `;
 
 riskDetails.innerHTML = `
-<b>Risk Details</b><br>
-Duration Risk: ${d.impact>60?"High":"Moderate"}<br>
-Liquidity Pressure: ${i.liquidity}<br>
-Yield Curve Shape: ${y.shape}<br>
-Funding Stress: ${stressScore}
+Premium risk analytics are available in Pro.
 `;
 
 scenarioDetails.innerHTML = `
-<b>Scenario Details</b><br>
-Base: ${d.impact}<br>
-Stress: ${Math.min(d.impact+20,100)}<br>
-Mild: ${Math.max(d.impact-15,0)}<br>
-Front-End Yield: ${y.front}%<br>
-Long-End Yield: ${y.long}%<br>
-Auction Score: ${auctionScore}
+Premium scenario modeling is available in Pro.
 `;
 
 }
@@ -655,8 +615,7 @@ run();
 /* ===== UPGRADE ===== */
 
 function upgrade(){
-pro=true;
-run();
+alert("This is the free version. Premium is locked in this file.");
 }
 
 /* INIT */
