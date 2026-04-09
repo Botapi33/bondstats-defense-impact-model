@@ -168,6 +168,8 @@ display:block;
 
 <div class="grid">
 
+<!-- LEFT PANEL -->
+
 <div class="panel">
 
 <label>Defense Spending <span id="spVal" class="sliderValue"></span></label>
@@ -199,6 +201,8 @@ display:block;
 <button onclick="upgrade()">Unlock Pro</button>
 
 </div>
+
+<!-- RIGHT PANEL -->
 
 <div class="panel">
 
@@ -241,17 +245,21 @@ display:block;
 <table id="table"></table>
 <div id="insight"></div>
 
-<div id="proArea">
+<!-- ORIGINAL PRO -->
+
+<div id="proArea" class="lock">
 <h3>Advanced Analysis</h3>
 <div id="analysis"></div>
 <div id="risk"></div>
 <div id="compare"></div>
 
-<h3>Liquidity Stress Monitor</h3>
-<div id="liquidityStress"></div>
+<!-- NEW FEATURES (LOCKED) -->
 
-<h3>Auction Pressure Model</h3>
-<div id="auctionPressure"></div>
+<h3>Liquidity Stress Monitor (PRO)</h3>
+<div id="liquidityStress" class="lock"></div>
+
+<h3>Auction Pressure Model (PRO)</h3>
+<div id="auctionPressure" class="lock"></div>
 
 </div>
 
@@ -263,52 +271,187 @@ display:block;
 
 <script>
 
-let pro=true;
+let pro=false;
 
-/* ===== ORIGINAL CODE BLEIBT UNVERÄNDERT ===== */
+/* ===== NEW ===== */
 
-/* (Hier bleibt ALLES was du hattest exakt gleich – bewusst nicht nochmal gekürzt dargestellt) */
-
-
-/* ===== PREMIUM EXTENSION ===== */
-
-function liquidityBreakdown(i,score){
-return {
-funding:(score/2).toFixed(0),
-dealer:i.liquidity==="Weak"?"Stressed":"Stable",
-system:score>70?"Fragile":"Normal"
-};
+function updateSlider(){
+spVal.innerText = spending.value + " bn";
 }
 
-function auctionBreakdown(i,score){
-return {
-front:(score/3).toFixed(1),
-belly:(score/2).toFixed(1),
-long:(score/1.5).toFixed(1)
-};
+function switchTab(id){
+document.querySelectorAll(".tabContent").forEach(c=>c.classList.remove("active"));
+document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+event.target.classList.add("active");
+document.getElementById(id).classList.add("active");
 }
 
-function yieldSim(score){
-return {
-front:(2+score/100).toFixed(2),
-long:(3+score/80).toFixed(2),
-shape:score>60?"Steepening":"Flattening"
-};
+/* ===== MODEL ===== */
+
+function compute(i){
+
+let impact =
+i.spending*0.2 +
+(i.inflation==="High"?25:10) +
+(i.liquidity==="Weak"?20:5) +
+(i.policy==="Restrictive"?15:5);
+
+impact=Math.min(impact,100);
+
+let confidence=70-(i.liquidity==="Weak"?20:5);
+
+let regime=impact<40?"Stable":impact<70?"Adjustment":"Repricing";
+
+let signal=impact<30?"Weak":impact<60?"Building":"Strong";
+
+let decision;
+if(impact>75){
+decision="Reduce duration (2Y), avoid long-end, hedge";
+}else if(impact>50){
+decision="Reduce duration (1Y), monitor auctions";
+}else{
+decision="Neutral positioning";
 }
 
-function positioning(score){
-if(score>75)return"Short duration, avoid long-end";
-if(score>50)return"Reduce duration, focus belly";
-return"Neutral positioning";
+return {impact,confidence,regime,signal,decision};
+
 }
 
-/* ===== EXTEND RUN ===== */
+/* ===== PREMIUM ENGINES (NEW CODE) ===== */
 
-const originalRun = run;
+function liquidityStressModel(i,score){
 
-run = function(){
+let baseStress = 0;
 
-originalRun();
+if(i.liquidity==="Weak"){ baseStress += 40; }
+else if(i.liquidity==="Normal"){ baseStress += 20; }
+else{ baseStress += 5; }
+
+if(i.policy==="Restrictive"){ baseStress += 30; }
+else{ baseStress += 10; }
+
+let dynamic = score / 5;
+
+let total = baseStress + dynamic;
+
+return Math.min(Math.round(total),100);
+
+}
+
+function auctionPressureModel(i,score){
+
+let pressure = 0;
+
+pressure += i.spending * 0.1;
+
+if(i.inflation==="High"){ pressure += 30; }
+else if(i.inflation==="Moderate"){ pressure += 15; }
+
+pressure += score / 4;
+
+return Math.min(Math.round(pressure),100);
+
+}
+
+/* ===== ORIGINAL CHARTS ===== */
+
+function drawTimeline(score){
+
+let ctx=timeline.getContext("2d");
+ctx.clearRect(0,0,500,200);
+
+ctx.strokeStyle="orange";
+ctx.beginPath();
+
+for(let i=0;i<30;i++){
+let y=200-(score*(i/30))*1.5;
+ctx.lineTo(i*16,y);
+}
+
+ctx.stroke();
+
+ctx.strokeStyle="red";
+ctx.beginPath();
+for(let i=0;i<30;i++){
+ctx.lineTo(i*16,200-((score+20)*(i/30))*1.5);
+}
+ctx.stroke();
+
+}
+
+function drawCurve(score){
+
+let ctx=curve.getContext("2d");
+ctx.clearRect(0,0,500,200);
+
+let base=[2,2.2,2.5,3,3.3];
+
+ctx.strokeStyle="cyan";
+ctx.beginPath();
+
+base.forEach((v,i)=>{
+ctx.lineTo(i*100,200-(v+score/80)*40);
+});
+
+ctx.stroke();
+
+ctx.strokeStyle="red";
+ctx.beginPath();
+
+base.forEach((v,i)=>{
+ctx.lineTo(i*100,200-(v+(score+20)/80)*40);
+});
+
+ctx.stroke();
+
+}
+
+function drawFactors(score){
+
+let ctx=factors.getContext("2d");
+ctx.clearRect(0,0,500,200);
+
+let vals=[score,score*0.8,score*0.6,score*0.5];
+
+vals.forEach((v,i)=>{
+ctx.fillStyle="orange";
+ctx.fillRect(i*100,200-v*1.5,50,v*1.5);
+});
+
+}
+
+function drawCompare(score){
+
+let ctx=compareChart.getContext("2d");
+ctx.clearRect(0,0,500,200);
+
+ctx.strokeStyle="orange";
+ctx.beginPath();
+
+for(let i=0;i<20;i++){
+ctx.lineTo(i*20,200-(score*(i/20)));
+}
+ctx.stroke();
+
+}
+
+/* ===== TABLE ===== */
+
+function buildTable(score){
+
+table.innerHTML=`
+<tr><td>Supply</td><td>${score>60?"High":"Moderate"}</td></tr>
+<tr><td>Inflation</td><td>${score>50?"Elevated":"Contained"}</td></tr>
+<tr><td>Volatility</td><td>${score>60?"High":"Moderate"}</td></tr>
+<tr><td>Yield Shift</td><td>+${(score/10).toFixed(2)}%</td></tr>
+<tr><td>Curve Slope</td><td>${(score/50).toFixed(2)}</td></tr>
+`;
+
+}
+
+/* ===== RUN ===== */
+
+function run(){
 
 let i={
 spending:+spending.value,
@@ -319,39 +462,69 @@ policy:policy.value
 
 let d=compute(i);
 
-/* ===== PREMIUM OUTPUT ===== */
+impact.innerText=Math.round(d.impact);
+confidence.innerText=Math.round(d.confidence);
+regime.innerText=d.regime;
+signal.innerText=d.signal;
+decision.innerText=d.decision;
 
-let lb = liquidityBreakdown(i,d.impact);
-let ab = auctionBreakdown(i,d.impact);
-let y = yieldSim(d.impact);
+drawTimeline(d.impact);
+drawCurve(d.impact);
+drawFactors(d.impact);
+drawCompare(d.impact);
+buildTable(d.impact);
+
+insight.innerHTML=`
+<b>Market Insight:</b><br>
+Supply drives yields before inflation.<br><br>
+<b>Positioning:</b> ${d.decision}
+`;
+
+/* PRO */
+
+if(pro){
+
+proArea.classList.remove("lock");
+
+analysis.innerHTML=`Market regime: ${d.regime}`;
+risk.innerHTML=`Volatility: ${d.impact>60?"High":"Moderate"}`;
+compare.innerHTML=`Stress: ${d.impact+20}`;
+
+/* NEW PREMIUM OUTPUT */
+
+let stressScore = liquidityStressModel(i,d.impact);
 
 liquidityStress.innerHTML=`
-Stress Score: ${d.impact}<br>
-Funding: ${lb.funding}<br>
-Dealer: ${lb.dealer}<br>
-System: ${lb.system}
+Stress Score: ${stressScore}<br>
+Funding Pressure: ${stressScore>60?"High":"Moderate"}<br>
+System Risk: ${stressScore>75?"Critical":"Normal"}
 `;
+
+let auctionScore = auctionPressureModel(i,d.impact);
 
 auctionPressure.innerHTML=`
-Front: ${ab.front}<br>
-Belly: ${ab.belly}<br>
-Long: ${ab.long}<br>
-Yield: +${(d.impact/10).toFixed(2)}%
+Auction Pressure: ${auctionScore}<br>
+Yield Impact: +${(auctionScore/10).toFixed(2)}%<br>
+Supply Risk: ${auctionScore>60?"High":"Moderate"}
 `;
 
-compare.innerHTML += `
-<br><br><b>Yield Curve Sim:</b><br>
-Front: ${y.front}%<br>
-Long: ${y.long}%<br>
-Shape: ${y.shape}
-`;
+}
 
-analysis.innerHTML += `
-<br><br><b>Positioning:</b><br>
-${positioning(d.impact)}
-`;
+}
 
-};
+function shock(){
+spending.value=Math.min(+spending.value+120,400);
+inflation.value="High";
+liquidity.value="Weak";
+policy.value="Restrictive";
+updateSlider();
+run();
+}
+
+function upgrade(){
+pro=true;
+run();
+}
 
 updateSlider();
 run();
