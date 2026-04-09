@@ -5,35 +5,27 @@
 <title>BondStats Terminal Pro</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <style>
 
-/* ===== GLOBAL ===== */
-
+/* ===== BASE ===== */
 body{
 margin:0;
-font-family:-apple-system,system-ui;
-background:#050a16;
+font-family:system-ui;
+background:#040812;
 color:#e2e8f0;
 }
 
 .container{
-max-width:1800px;
+max-width:1600px;
 margin:auto;
 padding:25px;
 }
 
 h1{
-margin-bottom:5px;
-}
-
-.sub{
-color:#94a3b8;
 margin-bottom:20px;
 }
 
-/* GRID */
+/* ===== LAYOUT ===== */
 
 .grid{
 display:grid;
@@ -41,7 +33,7 @@ grid-template-columns:420px 1fr;
 gap:20px;
 }
 
-/* PANEL */
+/* ===== PANEL ===== */
 
 .panel{
 background:#0f172a;
@@ -49,7 +41,7 @@ padding:20px;
 border-radius:12px;
 }
 
-/* INPUT */
+/* ===== INPUT ===== */
 
 label{
 font-size:12px;
@@ -69,6 +61,7 @@ color:white;
 button{
 width:100%;
 padding:12px;
+background:#f97316;
 border:none;
 color:white;
 font-weight:bold;
@@ -76,17 +69,12 @@ cursor:pointer;
 margin-top:8px;
 }
 
-.run{background:#f97316;}
-.shock{background:#fb923c;}
-.pro{background:#2563eb;}
-
-/* METRICS */
+/* ===== METRICS ===== */
 
 .metrics{
 display:grid;
 grid-template-columns:repeat(5,1fr);
 gap:10px;
-margin-bottom:15px;
 }
 
 .metric{
@@ -104,15 +92,21 @@ color:#94a3b8;
 font-size:20px;
 }
 
-/* CHARTS */
+/* ===== CHARTS ===== */
 
 .charts{
 display:grid;
 grid-template-columns:1fr 1fr;
 gap:15px;
+margin-top:15px;
 }
 
-/* TABLE */
+canvas{
+background:#020617;
+border-radius:10px;
+}
+
+/* ===== TABLE ===== */
 
 table{
 width:100%;
@@ -125,48 +119,40 @@ padding:6px;
 border-bottom:1px solid #1e293b;
 }
 
-/* LOCK */
+/* ===== PRO LOCK ===== */
 
 .lock{
-filter: blur(3px);
-pointer-events:none;
+opacity:0.2;
 position:relative;
 }
 
 .lock::after{
-content:"Upgrade to Pro";
+content:"PRO";
 position:absolute;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-background:#020617;
-padding:10px;
+top:10px;
+right:10px;
 color:#f97316;
+font-size:11px;
 }
 
-/* TEXT */
+/* ===== BUTTON ===== */
 
-.section{
-margin-top:15px;
-font-size:13px;
-color:#94a3b8;
+.upgrade{
+background:#2563eb;
 }
 
 </style>
-</head>
 
+</head>
 <body>
 
 <div class="container">
 
 <h1>Defense Bond Impact Terminal</h1>
-<div class="sub">
-Institutional-grade simulation of fiscal impact on bond markets and yield dynamics.
-</div>
 
 <div class="grid">
 
-<!-- LEFT -->
+<!-- LEFT PANEL -->
 
 <div class="panel">
 
@@ -194,15 +180,17 @@ Institutional-grade simulation of fiscal impact on bond markets and yield dynami
 <option>Restrictive</option>
 </select>
 
-<button class="run" onclick="run()">Run Model</button>
-<button class="shock" onclick="shock()">Shock</button>
-<button class="pro" onclick="upgrade()">Upgrade to Pro</button>
+<button onclick="run()">Run Model</button>
+<button onclick="shock()">Shock Scenario</button>
+<button class="upgrade" onclick="upgrade()">Unlock Pro</button>
 
 </div>
 
-<!-- RIGHT -->
+<!-- RIGHT PANEL -->
 
 <div class="panel">
+
+<!-- METRICS -->
 
 <div class="metrics">
 <div class="metric"><div class="metric-title">Impact</div><div id="impact"></div></div>
@@ -212,29 +200,29 @@ Institutional-grade simulation of fiscal impact on bond markets and yield dynami
 <div class="metric"><div class="metric-title">Decision</div><div id="decision"></div></div>
 </div>
 
+<!-- CHARTS -->
+
 <div class="charts">
-<canvas id="timeline"></canvas>
-<canvas id="curve"></canvas>
-<canvas id="factors"></canvas>
-<canvas id="compare"></canvas>
+<canvas id="timeline" width="500" height="200"></canvas>
+<canvas id="curve" width="500" height="200"></canvas>
+<canvas id="factors" width="500" height="200"></canvas>
+<canvas id="compareChart" width="500" height="200"></canvas>
 </div>
+
+<!-- TABLE -->
 
 <table id="table"></table>
 
-<div id="proArea">
+<!-- PRO -->
+
+<div id="proArea" class="lock">
 
 <h3>Advanced Analysis</h3>
 
 <div id="analysis"></div>
 <div id="risk"></div>
-<div id="scenario"></div>
+<div id="compare"></div>
 
-</div>
-
-<div id="insight" class="section"></div>
-
-<div class="section">
-<button onclick="exportReport()">Export Report</button>
 </div>
 
 </div>
@@ -245,9 +233,7 @@ Institutional-grade simulation of fiscal impact on bond markets and yield dynami
 
 <script>
 
-/* ===== STATE ===== */
-
-let pro = localStorage.getItem("pro") === "true";
+let pro=false;
 
 /* ===== MODEL ===== */
 
@@ -259,52 +245,115 @@ i.spending*0.2 +
 (i.liquidity==="Weak"?20:5) +
 (i.policy==="Restrictive"?15:5);
 
-impact = Math.min(impact,100);
+impact=Math.min(impact,100);
 
-let confidence = 70-(i.liquidity==="Weak"?20:5);
+let confidence=70-(i.liquidity==="Weak"?20:5);
 
-let regime = impact<40?"Stable":impact<70?"Adjustment":"Repricing";
+let regime=impact<40?"Stable":impact<70?"Adjustment":"Repricing";
 
-let signal = impact<30?"Weak":impact<60?"Building":"Strong";
+let signal=impact<30?"Weak":impact<60?"Building":"Strong";
 
-let decision =
-impact>70?"Reduce Duration | Favor short-end bonds":
-impact>40?"Hedge exposure | Monitor issuance":
+let decision=
+impact>70?"Reduce Duration":
+impact>40?"Hedge Risk":
 "Hold";
 
 return {impact,confidence,regime,signal,decision};
 
 }
 
-/* ===== CHARTS ===== */
+/* ===== TIMELINE ===== */
 
-let tChart, cChart, fChart, compChart;
+function drawTimeline(score){
 
-function initCharts(){
+let ctx=timeline.getContext("2d");
+ctx.clearRect(0,0,500,200);
 
-tChart = new Chart(timeline,{
-type:"line",
-data:{labels:[1,2,3,4,5,6,7,8,9,10],datasets:[{data:[],borderColor:"orange"}]}
+ctx.strokeStyle="orange";
+ctx.beginPath();
+
+for(let i=0;i<30;i++){
+let y=200-(score*(i/30))*1.5;
+ctx.lineTo(i*16,y);
+}
+
+ctx.stroke();
+
+}
+
+/* ===== CURVE ===== */
+
+function drawCurve(score){
+
+let ctx=curve.getContext("2d");
+ctx.clearRect(0,0,500,200);
+
+let base=[2,2.2,2.5,3,3.3];
+let adj=base.map(x=>x+score/80);
+
+ctx.strokeStyle="cyan";
+ctx.beginPath();
+
+adj.forEach((v,i)=>{
+ctx.lineTo(i*100,200-v*40);
 });
 
-cChart = new Chart(curve,{
-type:"line",
-data:{labels:["2Y","5Y","10Y","20Y","30Y"],datasets:[{data:[],borderColor:"cyan"}]}
+ctx.stroke();
+
+}
+
+/* ===== FACTORS ===== */
+
+function drawFactors(score){
+
+let ctx=factors.getContext("2d");
+ctx.clearRect(0,0,500,200);
+
+let vals=[score,score*0.8,score*0.6,score*0.5];
+
+vals.forEach((v,i)=>{
+ctx.fillStyle="orange";
+ctx.fillRect(i*100,200-v*1.5,50,v*1.5);
 });
 
-fChart = new Chart(factors,{
-type:"bar",
-data:{labels:["Supply","Inflation","Liquidity","Vol"],datasets:[{data:[],backgroundColor:"orange"}]}
-});
+}
 
-compChart = new Chart(compare,{
-type:"line",
-data:{labels:[1,2,3,4,5,6,7,8,9,10],
-datasets:[
-{label:"Base",data:[],borderColor:"orange"},
-{label:"Stress",data:[],borderColor:"red"}
-]}
-});
+/* ===== COMPARE ===== */
+
+function drawCompare(score){
+
+let ctx=compareChart.getContext("2d");
+ctx.clearRect(0,0,500,200);
+
+ctx.strokeStyle="orange";
+ctx.beginPath();
+
+for(let i=0;i<20;i++){
+ctx.lineTo(i*20,200-(score*(i/20)));
+}
+ctx.stroke();
+
+ctx.strokeStyle="red";
+ctx.beginPath();
+
+for(let i=0;i<20;i++){
+ctx.lineTo(i*20,200-((score+20)*(i/20)));
+}
+ctx.stroke();
+
+}
+
+/* ===== TABLE ===== */
+
+function buildTable(score){
+
+table.innerHTML=`
+<tr><td>Supply</td><td>${score>60?"High":"Moderate"}</td></tr>
+<tr><td>Inflation</td><td>${score>50?"Elevated":"Contained"}</td></tr>
+<tr><td>Liquidity</td><td>${score>60?"Weak":"Normal"}</td></tr>
+<tr><td>Volatility</td><td>${score>60?"High":"Moderate"}</td></tr>
+<tr><td>Term Premium</td><td>${score>60?"Rising":"Stable"}</td></tr>
+`;
 
 }
 
@@ -321,72 +370,36 @@ policy:policy.value
 
 let d=compute(i);
 
-/* METRICS */
 impact.innerText=Math.round(d.impact);
 confidence.innerText=Math.round(d.confidence);
 regime.innerText=d.regime;
 signal.innerText=d.signal;
+decision.innerText=d.decision;
 
-/* DECISION */
-decision.innerText = pro ? d.decision : "🔒 Pro Only";
+drawTimeline(d.impact);
+drawCurve(d.impact);
+drawFactors(d.impact);
+drawCompare(d.impact);
+buildTable(d.impact);
 
-/* CHARTS */
-
-tChart.data.datasets[0].data =
-Array.from({length:10},(_,i)=>d.impact*(i/10));
-tChart.update();
-
-cChart.data.datasets[0].data =
-[2,2.2,2.5,3,3.3].map(x=>x+d.impact/80);
-cChart.update();
-
-fChart.data.datasets[0].data =
-[d.impact,d.impact*0.8,d.impact*0.6,d.impact*0.5];
-fChart.update();
-
-compChart.data.datasets[0].data =
-Array.from({length:10},(_,i)=>d.impact*(i/10));
-
-compChart.data.datasets[1].data =
-Array.from({length:10},(_,i)=>(d.impact+20)*(i/10));
-
-compChart.update();
-
-/* TABLE */
-
-table.innerHTML=`
-<tr><td>Supply</td><td>${d.impact>60?"High":"Moderate"}</td></tr>
-<tr><td>Inflation</td><td>${d.impact>50?"Elevated":"Contained"}</td></tr>
-<tr><td>Liquidity</td><td>${d.impact>60?"Weak":"Normal"}</td></tr>
-<tr><td>Volatility</td><td>${d.impact>60?"High":"Moderate"}</td></tr>
-`;
-
-/* PRO AREA */
+/* PRO */
 
 if(pro){
-analysis.innerHTML=`Market in ${d.regime} regime driven by fiscal expansion.`;
-risk.innerHTML=`Volatility expected ${d.impact>60?"High":"Moderate"}`;
-scenario.innerHTML=`Scenario delta: +20 impact`;
-}else{
-analysis.innerHTML="🔒 Upgrade to unlock analysis";
-risk.innerHTML="🔒 Risk model locked";
-scenario.innerHTML="🔒 Scenario comparison locked";
-proArea.classList.add("lock");
+
+analysis.innerHTML=`Markets in ${d.regime} regime driven by fiscal expansion.`;
+
+risk.innerHTML=`Volatility: ${d.impact>60?"High":"Moderate"}`;
+
+compare.innerHTML=`Scenario delta: +20 stress impact`;
+
 }
-
-/* INSIGHT */
-
-insight.innerHTML=`
-Higher defense spending increases bond issuance, pushing yields higher.
-Markets react to supply shocks before inflation fully adjusts.
-`;
 
 }
 
 /* ===== SHOCK ===== */
 
 function shock(){
-spending.value = Math.min(+spending.value+100,400);
+spending.value=Math.min(+spending.value+120,400);
 inflation.value="High";
 liquidity.value="Weak";
 policy.value="Restrictive";
@@ -396,36 +409,12 @@ run();
 /* ===== UPGRADE ===== */
 
 function upgrade(){
-localStorage.setItem("pro","true");
 pro=true;
+proArea.classList.remove("lock");
 run();
+alert("Pro unlocked (connect Stripe next)");
 }
 
-/* ===== EXPORT ===== */
-
-function exportReport(){
-
-let text = `
-BondStats Report
-
-Impact: ${impact.innerText}
-Regime: ${regime.innerText}
-Signal: ${signal.innerText}
-Decision: ${decision.innerText}
-
-`;
-
-let blob = new Blob([text],{type:"text/plain"});
-let a=document.createElement("a");
-a.href=URL.createObjectURL(blob);
-a.download="report.txt";
-a.click();
-
-}
-
-/* INIT */
-
-initCharts();
 run();
 
 </script>
