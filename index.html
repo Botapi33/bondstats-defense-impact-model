@@ -6,47 +6,169 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{margin:0;font-family:system-ui;background:#040812;color:#e2e8f0;}
-.container{max-width:1600px;margin:auto;padding:25px;}
+
+/* ===== BASE ===== */
+body{
+margin:0;
+font-family:system-ui;
+background:#040812;
+color:#e2e8f0;
+}
+
+.container{
+max-width:1600px;
+margin:auto;
+padding:25px;
+}
+
 h1{margin-bottom:20px;}
-.grid{display:grid;grid-template-columns:420px 1fr;gap:20px;}
-.panel{background:#0f172a;padding:20px;border-radius:12px;}
+
+/* ===== LAYOUT ===== */
+
+.grid{
+display:grid;
+grid-template-columns:420px 1fr;
+gap:20px;
+}
+
+/* ===== PANEL ===== */
+
+.panel{
+background:#0f172a;
+padding:20px;
+border-radius:12px;
+}
+
+/* ===== INPUT ===== */
 
 label{font-size:12px;color:#94a3b8;}
-input,select{width:100%;padding:10px;margin-top:6px;margin-bottom:12px;background:#1e293b;border:none;color:white;}
 
-button{width:100%;padding:12px;background:#f97316;border:none;color:white;font-weight:bold;cursor:pointer;margin-top:8px;}
+input,select{
+width:100%;
+padding:10px;
+margin-top:6px;
+margin-bottom:12px;
+background:#1e293b;
+border:none;
+color:white;
+}
 
-.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
-.metric{background:#020617;padding:12px;border-radius:8px;}
+button{
+width:100%;
+padding:12px;
+background:#f97316;
+border:none;
+color:white;
+font-weight:bold;
+cursor:pointer;
+margin-top:8px;
+}
+
+/* ===== METRICS ===== */
+
+.metrics{
+display:grid;
+grid-template-columns:repeat(5,1fr);
+gap:10px;
+}
+
+.metric{
+background:#020617;
+padding:12px;
+border-radius:8px;
+}
+
 .metric-title{font-size:11px;color:#94a3b8;}
 .metric-value{font-size:20px;}
 
-.charts{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:15px;}
-canvas{background:#020617;border-radius:10px;}
+/* ===== CHARTS ===== */
 
-table{width:100%;margin-top:10px;font-size:12px;}
-td{padding:6px;border-bottom:1px solid #1e293b;}
+.charts{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:15px;
+margin-top:15px;
+}
 
-.lock{opacity:0.2;position:relative;}
-.lock::after{content:"PRO";position:absolute;top:10px;right:10px;color:#f97316;font-size:11px;}
+canvas{
+background:#020617;
+border-radius:10px;
+}
 
-.sliderValue{float:right;color:#f97316;font-size:12px;}
+/* ===== TABLE ===== */
 
-.tabs{display:flex;gap:10px;margin:10px 0;}
-.tab{padding:6px 10px;background:#020617;cursor:pointer;font-size:12px;}
-.tab.active{background:#f97316;}
-.tabContent{display:none;}
-.tabContent.active{display:block;}
+table{
+width:100%;
+margin-top:10px;
+font-size:12px;
+}
+
+td{
+padding:6px;
+border-bottom:1px solid #1e293b;
+}
+
+/* ===== PRO LOCK ===== */
+
+.lock{
+opacity:0.2;
+position:relative;
+}
+
+.lock::after{
+content:"PRO";
+position:absolute;
+top:10px;
+right:10px;
+color:#f97316;
+font-size:11px;
+}
+
+/* ===== NEW ===== */
+
+.sliderValue{
+float:right;
+color:#f97316;
+font-size:12px;
+}
+
+.tabs{
+display:flex;
+gap:10px;
+margin:10px 0;
+}
+
+.tab{
+padding:6px 10px;
+background:#020617;
+cursor:pointer;
+font-size:12px;
+}
+
+.tab.active{
+background:#f97316;
+}
+
+.tabContent{
+display:none;
+}
+
+.tabContent.active{
+display:block;
+}
+
 </style>
 </head>
 
 <body>
 
 <div class="container">
+
 <h1>Defense Bond Impact Terminal</h1>
 
 <div class="grid">
+
+<!-- LEFT PANEL -->
 
 <div class="panel">
 
@@ -79,6 +201,8 @@ td{padding:6px;border-bottom:1px solid #1e293b;}
 <button onclick="upgrade()">Unlock Pro</button>
 
 </div>
+
+<!-- RIGHT PANEL -->
 
 <div class="panel">
 
@@ -121,11 +245,15 @@ td{padding:6px;border-bottom:1px solid #1e293b;}
 <table id="table"></table>
 <div id="insight"></div>
 
+<!-- ORIGINAL PRO -->
+
 <div id="proArea" class="lock">
 <h3>Advanced Analysis</h3>
 <div id="analysis"></div>
 <div id="risk"></div>
 <div id="compare"></div>
+
+<!-- NEW FEATURES (LOCKED) -->
 
 <h3>Liquidity Stress Monitor (PRO)</h3>
 <div id="liquidityStress" class="lock"></div>
@@ -145,6 +273,8 @@ td{padding:6px;border-bottom:1px solid #1e293b;}
 
 let pro=false;
 
+/* ===== NEW ===== */
+
 function updateSlider(){
 spVal.innerText = spending.value + " bn";
 }
@@ -156,50 +286,88 @@ event.target.classList.add("active");
 document.getElementById(id).classList.add("active");
 }
 
+/* ===== MODEL ===== */
+
 function compute(i){
-let impact=i.spending*0.2+(i.inflation==="High"?25:10)+(i.liquidity==="Weak"?20:5)+(i.policy==="Restrictive"?15:5);
+
+let impact =
+i.spending*0.2 +
+(i.inflation==="High"?25:10) +
+(i.liquidity==="Weak"?20:5) +
+(i.policy==="Restrictive"?15:5);
+
 impact=Math.min(impact,100);
+
 let confidence=70-(i.liquidity==="Weak"?20:5);
+
 let regime=impact<40?"Stable":impact<70?"Adjustment":"Repricing";
+
 let signal=impact<30?"Weak":impact<60?"Building":"Strong";
 
 let decision;
-if(impact>75){decision="Reduce duration (2Y), avoid long-end, hedge";}
-else if(impact>50){decision="Reduce duration (1Y), monitor auctions";}
-else{decision="Neutral positioning";}
+if(impact>75){
+decision="Reduce duration (2Y), avoid long-end, hedge";
+}else if(impact>50){
+decision="Reduce duration (1Y), monitor auctions";
+}else{
+decision="Neutral positioning";
+}
 
 return {impact,confidence,regime,signal,decision};
+
 }
 
-/* ===== PREMIUM MODELS ===== */
+/* ===== PREMIUM ENGINES (NEW CODE) ===== */
 
 function liquidityStressModel(i,score){
-return Math.min(Math.round(
-(i.liquidity==="Weak"?40:10)+
-(i.policy==="Restrictive"?30:10)+
-(score/5)
-),100);
+
+let baseStress = 0;
+
+if(i.liquidity==="Weak"){ baseStress += 40; }
+else if(i.liquidity==="Normal"){ baseStress += 20; }
+else{ baseStress += 5; }
+
+if(i.policy==="Restrictive"){ baseStress += 30; }
+else{ baseStress += 10; }
+
+let dynamic = score / 5;
+
+let total = baseStress + dynamic;
+
+return Math.min(Math.round(total),100);
+
 }
 
-function auctionModel(i,score){
-return Math.min(Math.round(
-(i.spending*0.1)+
-(i.inflation==="High"?30:10)+
-(score/4)
-),100);
+function auctionPressureModel(i,score){
+
+let pressure = 0;
+
+pressure += i.spending * 0.1;
+
+if(i.inflation==="High"){ pressure += 30; }
+else if(i.inflation==="Moderate"){ pressure += 15; }
+
+pressure += score / 4;
+
+return Math.min(Math.round(pressure),100);
+
 }
 
 /* ===== ORIGINAL CHARTS ===== */
 
 function drawTimeline(score){
+
 let ctx=timeline.getContext("2d");
 ctx.clearRect(0,0,500,200);
 
 ctx.strokeStyle="orange";
 ctx.beginPath();
+
 for(let i=0;i<30;i++){
-ctx.lineTo(i*16,200-(score*(i/30))*1.5);
+let y=200-(score*(i/30))*1.5;
+ctx.lineTo(i*16,y);
 }
+
 ctx.stroke();
 
 ctx.strokeStyle="red";
@@ -208,50 +376,69 @@ for(let i=0;i<30;i++){
 ctx.lineTo(i*16,200-((score+20)*(i/30))*1.5);
 }
 ctx.stroke();
+
 }
 
 function drawCurve(score){
+
 let ctx=curve.getContext("2d");
 ctx.clearRect(0,0,500,200);
+
 let base=[2,2.2,2.5,3,3.3];
 
 ctx.strokeStyle="cyan";
 ctx.beginPath();
+
 base.forEach((v,i)=>{
 ctx.lineTo(i*100,200-(v+score/80)*40);
 });
+
 ctx.stroke();
 
 ctx.strokeStyle="red";
 ctx.beginPath();
+
 base.forEach((v,i)=>{
 ctx.lineTo(i*100,200-(v+(score+20)/80)*40);
 });
+
 ctx.stroke();
+
 }
 
 function drawFactors(score){
+
 let ctx=factors.getContext("2d");
 ctx.clearRect(0,0,500,200);
+
 let vals=[score,score*0.8,score*0.6,score*0.5];
+
 vals.forEach((v,i)=>{
 ctx.fillStyle="orange";
 ctx.fillRect(i*100,200-v*1.5,50,v*1.5);
 });
+
 }
 
 function drawCompare(score){
+
 let ctx=compareChart.getContext("2d");
 ctx.clearRect(0,0,500,200);
+
 ctx.strokeStyle="orange";
 ctx.beginPath();
+
 for(let i=0;i<20;i++){
 ctx.lineTo(i*20,200-(score*(i/20)));
 }
 ctx.stroke();
+
 }
 
+/* ===== TABLE ===== */
+
 function buildTable(score){
+
 table.innerHTML=`
 <tr><td>Supply</td><td>${score>60?"High":"Moderate"}</td></tr>
 <tr><td>Inflation</td><td>${score>50?"Elevated":"Contained"}</td></tr>
@@ -259,7 +446,10 @@ table.innerHTML=`
 <tr><td>Yield Shift</td><td>+${(score/10).toFixed(2)}%</td></tr>
 <tr><td>Curve Slope</td><td>${(score/50).toFixed(2)}</td></tr>
 `;
+
 }
+
+/* ===== RUN ===== */
 
 function run(){
 
@@ -300,20 +490,22 @@ analysis.innerHTML=`Market regime: ${d.regime}`;
 risk.innerHTML=`Volatility: ${d.impact>60?"High":"Moderate"}`;
 compare.innerHTML=`Stress: ${d.impact+20}`;
 
-/* PREMIUM FEATURES */
+/* NEW PREMIUM OUTPUT */
 
-let stress = liquidityStressModel(i,d.impact);
+let stressScore = liquidityStressModel(i,d.impact);
+
 liquidityStress.innerHTML=`
-Stress Score: ${stress}<br>
-Funding Pressure: ${stress>60?"High":"Moderate"}<br>
-Market Fragility: ${stress>70?"Elevated":"Normal"}
+Stress Score: ${stressScore}<br>
+Funding Pressure: ${stressScore>60?"High":"Moderate"}<br>
+System Risk: ${stressScore>75?"Critical":"Normal"}
 `;
 
-let auction = auctionModel(i,d.impact);
+let auctionScore = auctionPressureModel(i,d.impact);
+
 auctionPressure.innerHTML=`
-Supply Pressure: ${auction}<br>
-Yield Impact: +${(auction/10).toFixed(2)}%<br>
-Issuance Risk: ${auction>60?"High":"Moderate"}
+Auction Pressure: ${auctionScore}<br>
+Yield Impact: +${(auctionScore/10).toFixed(2)}%<br>
+Supply Risk: ${auctionScore>60?"High":"Moderate"}
 `;
 
 }
