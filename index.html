@@ -2,13 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>BondStats Terminal</title>
+<title>BondStats Terminal Pro</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-
-/* ===== GLOBAL ===== */
-
 body{
 margin:0;
 font-family:system-ui;
@@ -22,9 +19,7 @@ margin:auto;
 padding:20px;
 }
 
-/* ===== GRID ===== */
-
-.layout{
+.grid{
 display:grid;
 grid-template-columns:420px 1fr;
 gap:20px;
@@ -36,7 +31,9 @@ padding:20px;
 border-radius:10px;
 }
 
-/* ===== INPUT ===== */
+h1{
+margin-bottom:20px;
+}
 
 label{
 font-size:12px;
@@ -60,11 +57,11 @@ background:#f97316;
 border:none;
 color:white;
 font-weight:bold;
-margin-top:10px;
 cursor:pointer;
+margin-top:8px;
 }
 
-/* ===== METRICS ===== */
+/* METRICS */
 
 .metrics{
 display:grid;
@@ -88,55 +85,34 @@ color:#94a3b8;
 font-size:20px;
 }
 
-/* ===== GRID OUTPUT ===== */
+/* LOCK */
 
-.output-grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:15px;
+.lock{
+opacity:0.2;
+position:relative;
 }
 
-/* ===== CANVAS ===== */
+.lock::after{
+content:"PRO";
+position:absolute;
+top:5px;
+right:8px;
+font-size:10px;
+color:#f97316;
+}
+
+/* CHART */
 
 canvas{
 background:#020617;
 border-radius:10px;
-}
-
-/* ===== TABLE ===== */
-
-table{
-width:100%;
-font-size:12px;
-}
-
-td{
-padding:6px;
-border-bottom:1px solid #1e293b;
-}
-
-/* ===== LOCK ===== */
-
-.lock{
-opacity:0.3;
-}
-
-/* ===== TABS ===== */
-
-.tabs{
-display:flex;
-gap:10px;
 margin-top:10px;
 }
 
-.tab{
-padding:8px 12px;
-background:#1e293b;
-cursor:pointer;
-}
+/* BUTTON */
 
-.active{
-background:#f97316;
+.upgrade{
+background:#2563eb;
 }
 
 </style>
@@ -146,9 +122,9 @@ background:#f97316;
 
 <div class="container">
 
-<h1>Defense Bond Impact Terminal</h1>
+<h1>Defense Bond Impact Model – Terminal Pro</h1>
 
-<div class="layout">
+<div class="grid">
 
 <!-- INPUT -->
 
@@ -178,8 +154,9 @@ background:#f97316;
 <option>Restrictive</option>
 </select>
 
-<button onclick="run()">Run</button>
-<button onclick="shock()">Shock</button>
+<button onclick="run()">Run Model</button>
+<button onclick="shock()">Shock Scenario</button>
+<button class="upgrade" onclick="upgrade()">Upgrade to Pro</button>
 
 </div>
 
@@ -188,34 +165,25 @@ background:#f97316;
 <div class="panel">
 
 <div class="metrics">
-<div class="metric"><div class="metric-title">Impact</div><div id="impact" class="metric-value"></div></div>
-<div class="metric"><div class="metric-title">Confidence</div><div id="confidence" class="metric-value"></div></div>
-<div class="metric"><div class="metric-title">Regime</div><div id="regime" class="metric-value"></div></div>
-<div class="metric"><div class="metric-title">Signal</div><div id="signal" class="metric-value"></div></div>
+<div class="metric"><div class="metric-title">Impact</div><div id="impact"></div></div>
+<div class="metric"><div class="metric-title">Confidence</div><div id="confidence"></div></div>
+<div class="metric"><div class="metric-title">Regime</div><div id="regime"></div></div>
+<div class="metric"><div class="metric-title">Decision</div><div id="decision"></div></div>
 </div>
 
-<div class="output-grid">
+<canvas id="chart" width="800" height="200"></canvas>
 
-<canvas id="timeline" width="600" height="200"></canvas>
-<canvas id="curve" width="600" height="200"></canvas>
+<!-- PRO BLOCK -->
 
-<canvas id="factors" width="600" height="200"></canvas>
+<div id="proArea" class="lock">
 
-<div>
-<table id="table"></table>
+<h3>Advanced Analysis</h3>
+
+<div id="analysis"></div>
+<div id="risk"></div>
+<div id="compare"></div>
+
 </div>
-
-</div>
-
-<div class="tabs">
-<div class="tab active" onclick="tab('narrative')">Narrative</div>
-<div class="tab" onclick="tab('risk')">Risk</div>
-<div class="tab" onclick="tab('compare')">Compare</div>
-</div>
-
-<div id="narrative"></div>
-<div id="risk" style="display:none"></div>
-<div id="compare" style="display:none"></div>
 
 </div>
 
@@ -225,96 +193,53 @@ background:#f97316;
 
 <script>
 
-/* ===== MODEL ===== */
+let pro=false;
 
-function compute(i){
+/* MODEL */
+
+function calc(i){
 
 let impact =
-i.spending*0.18 +
+i.spending*0.2 +
 (i.inflation==="High"?25:10) +
 (i.liquidity==="Weak"?20:5) +
 (i.policy==="Restrictive"?15:5);
 
 impact=Math.min(impact,100);
 
-let confidence=70-(i.liquidity==="Weak"?15:5);
+let confidence=70-(i.liquidity==="Weak"?20:5);
 
 let regime=impact<40?"Stable":impact<70?"Adjustment":"Repricing";
-let signal=impact<30?"Weak":impact<60?"Building":"Strong";
 
-return {impact,confidence,regime,signal};
+let decision =
+impact>70?"Reduce Duration":
+impact>40?"Hedge Risk":
+"Hold";
+
+return {impact,confidence,regime,decision};
 
 }
 
-/* ===== TIMELINE ===== */
+/* CHART */
 
-function timeline(score){
+function draw(score){
 
-let ctx=timelineCanvas.getContext("2d");
-ctx.clearRect(0,0,600,200);
+let ctx=chart.getContext("2d");
+ctx.clearRect(0,0,800,200);
 
 ctx.strokeStyle="orange";
 ctx.beginPath();
 
 for(let i=0;i<20;i++){
-let val=score*(i/20);
-ctx.lineTo(i*30,200-val*1.5);
+let y=200-(score*(i/20))*1.5;
+ctx.lineTo(i*40,y);
 }
 
 ctx.stroke();
 
 }
 
-/* ===== CURVE ===== */
-
-function curve(score){
-
-let ctx=curveCanvas.getContext("2d");
-ctx.clearRect(0,0,600,200);
-
-let base=[2,2.2,2.5,3,3.3];
-let adjusted=base.map(x=>x+score/100);
-
-ctx.strokeStyle="cyan";
-ctx.beginPath();
-
-adjusted.forEach((v,i)=>{
-ctx.lineTo(i*120,200-v*40);
-});
-
-ctx.stroke();
-
-}
-
-/* ===== FACTORS ===== */
-
-function factors(score){
-
-let ctx=factorsCanvas.getContext("2d");
-ctx.clearRect(0,0,600,200);
-
-let vals=[score,score*0.8,score*0.6,score*0.5];
-vals.forEach((v,i)=>{
-ctx.fillStyle="orange";
-ctx.fillRect(i*120,200-v*1.5,50,v*1.5);
-});
-
-}
-
-/* ===== TABLE ===== */
-
-function table(score){
-
-table.innerHTML=`
-<tr><td>Supply</td><td>${score>60?"High":"Moderate"}</td></tr>
-<tr><td>Inflation</td><td>${score>50?"Elevated":"Contained"}</td></tr>
-<tr><td>Liquidity</td><td>${score>60?"Weak":"Normal"}</td></tr>
-<tr><td>Volatility</td><td>${score>60?"High":"Moderate"}</td></tr>
-`;
-
-}
-
-/* ===== RUN ===== */
+/* RUN */
 
 function run(){
 
@@ -325,33 +250,30 @@ liquidity:liquidity.value,
 policy:policy.value
 };
 
-let d=compute(i);
+let d=calc(i);
 
 impact.innerText=Math.round(d.impact);
 confidence.innerText=Math.round(d.confidence);
 regime.innerText=d.regime;
-signal.innerText=d.signal;
+decision.innerText=d.decision;
 
-timeline(d.impact);
-curve(d.impact);
-factors(d.impact);
-table(d.impact);
+draw(d.impact);
 
-/* Narrative */
+/* PRO */
 
-narrative.innerHTML=`Market entering ${d.regime} phase with ${d.signal} signal.`;
+if(pro){
 
-/* Risk */
+analysis.innerHTML=`Markets show ${d.regime} dynamics driven by fiscal expansion.`;
 
 risk.innerHTML=`Volatility ${d.impact>60?"High":"Moderate"}`;
-
-/* Compare */
 
 compare.innerHTML=`Base ${d.impact} | Stress ${d.impact+20}`;
 
 }
 
-/* ===== SHOCK ===== */
+}
+
+/* SHOCK */
 
 function shock(){
 spending.value=Math.min(+spending.value+100,400);
@@ -361,14 +283,13 @@ policy.value="Restrictive";
 run();
 }
 
-/* ===== TAB ===== */
+/* UPGRADE */
 
-function tab(name){
-["narrative","risk","compare"].forEach(id=>{
-document.getElementById(id).style.display="none";
-});
-document.getElementById(name).style.display="block";
-event.target.classList.add("active");
+function upgrade(){
+pro=true;
+proArea.classList.remove("lock");
+run();
+alert("Pro Activated (connect payment)");
 }
 
 run();
