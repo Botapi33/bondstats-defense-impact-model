@@ -3,84 +3,105 @@
 <head>
 <meta charset="UTF-8">
 <title>Defense Bond Impact Model</title>
+
 <style>
-body {
+body{
   margin:0;
-  font-family: -apple-system, BlinkMacSystemFont;
-  background:#0b1220;
+  font-family:-apple-system,BlinkMacSystemFont;
+  background:#0a0f1c;
   color:#e5e7eb;
 }
 
-.container {
-  max-width:1100px;
+.container{
+  max-width:1300px;
   margin:auto;
   padding:40px;
 }
 
-h1 {
-  font-size:34px;
+h1{
+  font-size:38px;
   margin-bottom:10px;
 }
 
-.subtitle {
+.subtitle{
   color:#9ca3af;
-  margin-bottom:40px;
+  margin-bottom:30px;
 }
 
-.card {
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1.2fr;
+  gap:30px;
+}
+
+.card{
   background:#111827;
   padding:20px;
-  border-radius:10px;
-  margin-bottom:20px;
+  border-radius:12px;
 }
 
-input, select {
+input,select{
   width:100%;
-  padding:10px;
+  padding:12px;
   margin-top:10px;
   background:#1f2937;
   border:none;
   color:white;
-  border-radius:6px;
 }
 
-button {
+button{
   margin-top:20px;
   padding:14px;
   width:100%;
-  border:none;
-  border-radius:8px;
   background:#f97316;
+  border:none;
   color:white;
   font-weight:bold;
   cursor:pointer;
 }
 
-.output {
-  margin-top:30px;
+.tabs{
+  display:flex;
+  gap:10px;
+  margin-top:20px;
 }
 
-.metric {
+.tab{
+  padding:10px;
+  background:#1f2937;
+  cursor:pointer;
+  border-radius:6px;
+}
+
+.active{
+  background:#f97316;
+}
+
+.section{
+  margin-top:20px;
+}
+
+.metric{
   margin-bottom:10px;
-  font-size:18px;
 }
 
-.locked {
-  opacity:0.4;
+.locked{
+  opacity:0.3;
 }
 
-.upgrade {
+.upgrade{
   margin-top:20px;
   padding:15px;
-  text-align:center;
   background:#1f2937;
   border-radius:8px;
+  text-align:center;
 }
 
-.upgrade button {
+.upgrade button{
   background:#10b981;
 }
 </style>
+
 </head>
 
 <body>
@@ -89,49 +110,55 @@ button {
 
 <h1>Defense Bond Impact Model</h1>
 <div class="subtitle">
-Structured analysis of how defense spending impacts bond markets
+Structured analysis of how defense spending translates into bond market impact
 </div>
 
-<div class="card">
-<label>Defense Spending Increase ($bn)</label>
-<input type="range" id="spending" min="0" max="300" value="100">
+<div class="grid">
 
-<label>Inflation Expectations</label>
+<!-- INPUT -->
+<div class="card">
+
+<label>Defense Spending ($bn)</label>
+<input type="range" id="spending" min="0" max="300" value="120">
+
+<label>Inflation</label>
 <select id="inflation">
 <option>Low</option>
 <option selected>Moderate</option>
 <option>High</option>
 </select>
 
-<label>Issuance Structure</label>
+<label>Issuance</label>
 <select id="issuance">
-<option>Short-term heavy</option>
+<option>Short</option>
 <option selected>Balanced</option>
-<option>Long-term heavy</option>
+<option>Long</option>
 </select>
 
-<label>Market Liquidity</label>
-<select id="liquidity">
+<label>Liquidity</label>
+<select id="liq">
 <option>Strong</option>
 <option selected>Normal</option>
 <option>Weak</option>
 </select>
 
-<button onclick="runModel()">Run Analysis</button>
+<button onclick="run()">Run Model</button>
+
 </div>
 
-<div class="card output" id="output">
-<div class="metric">Yield Pressure: -</div>
-<div class="metric">Curve Impact: -</div>
-<div class="metric">Supply Pressure: -</div>
+<!-- OUTPUT -->
+<div class="card">
 
-<div class="metric locked">Market Interpretation (Pro)</div>
-<div class="metric locked">Risk Level (Pro)</div>
-<div class="metric locked">Time Horizon Analysis (Pro)</div>
+<div class="tabs">
+<div class="tab active" onclick="switchTab('overview')">Overview</div>
+<div class="tab" onclick="switchTab('analysis')">Analysis</div>
+<div class="tab" onclick="switchTab('risk')">Risk</div>
+</div>
 
-<div class="upgrade">
-Unlock full model insights<br><br>
-<button onclick="upgrade()">Upgrade to Pro</button>
+<div id="overview" class="section"></div>
+<div id="analysis" class="section" style="display:none;"></div>
+<div id="risk" class="section" style="display:none;"></div>
+
 </div>
 
 </div>
@@ -140,67 +167,98 @@ Unlock full model insights<br><br>
 
 <script>
 
-let isPro = false;
+let isPro=false;
 
-function runModel() {
-  let spending = document.getElementById("spending").value;
-  let inflation = document.getElementById("inflation").value;
-  let issuance = document.getElementById("issuance").value;
-  let liquidity = document.getElementById("liquidity").value;
+function switchTab(tab){
+  document.getElementById("overview").style.display="none";
+  document.getElementById("analysis").style.display="none";
+  document.getElementById("risk").style.display="none";
 
-  let yield = "Neutral";
-  let curve = "Neutral";
-  let supply = "Moderate";
+  document.getElementById(tab).style.display="block";
 
-  if (spending > 150) {
-    yield = "Upward pressure";
-    supply = "High";
-  }
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  event.target.classList.add("active");
+}
 
-  if (inflation === "High") {
-    yield = "Strong upward pressure";
-  }
+function run(){
 
-  if (issuance === "Long-term heavy") {
-    curve = "Steepening";
-  }
+  let s=+spending.value;
+  let infl=inflation.value;
+  let iss=issuance.value;
+  let liqv=liq.value;
 
-  if (liquidity === "Weak") {
-    supply = "Very High";
-  }
+  let score=s*0.4;
+  if(infl==="High") score+=25;
+  if(liqv==="Weak") score+=20;
+  score=Math.min(score,100);
 
-  let outputHTML = `
-  <div class="metric">Yield Pressure: ${yield}</div>
-  <div class="metric">Curve Impact: ${curve}</div>
-  <div class="metric">Supply Pressure: ${supply}</div>
+  let yield=score>70?"Strong ↑":score>40?"Moderate ↑":"Neutral";
+  let curve=iss==="Long"?"Steepening":iss==="Short"?"Flattening":"Neutral";
+
+  let overviewHTML=`
+  <div class="metric"><b>Yield:</b> ${yield}</div>
+  <div class="metric"><b>Curve:</b> ${curve}</div>
+  <div class="metric"><b>Impact Score:</b> ${Math.round(score)}</div>
   `;
 
-  if (isPro) {
-    outputHTML += `
-    <div class="metric">Market Interpretation: Markets are likely pricing increased issuance and shifting expectations.</div>
-    <div class="metric">Risk Level: Elevated volatility risk</div>
-    <div class="metric">Time Horizon: Short-term disruption, medium-term repricing</div>
+  let analysisHTML="";
+  let riskHTML="";
+
+  if(isPro){
+
+    let narrative=score>70?
+    "Markets are likely pricing a supply-driven repricing environment.":
+    "Markets are gradually adjusting expectations.";
+
+    analysisHTML=`
+    <div class="metric"><b>Market Interpretation:</b><br>${narrative}</div>
+    <div class="metric"><b>Pressure Breakdown:</b><br>
+    Supply: ${s>150?"High":"Moderate"} |
+    Inflation: ${infl} |
+    Policy: ${liqv}</div>
+    <div class="metric"><b>Time Horizon:</b><br>
+    Short-term: Reaction<br>
+    Medium-term: Adjustment<br>
+    Long-term: Structural shift</div>
     `;
+
+    riskHTML=`
+    <div class="metric"><b>Risk Map:</b><br>
+    Volatility: ${score>60?"High":"Moderate"}<br>
+    Liquidity Stress: ${liqv}<br>
+    Policy Conflict: ${infl==="High"?"Elevated":"Moderate"}</div>
+
+    <div class="metric"><b>Confidence:</b> ${Math.round(score)}%</div>
+    `;
+
   } else {
-    outputHTML += `
-    <div class="metric locked">Market Interpretation (Pro)</div>
-    <div class="metric locked">Risk Level (Pro)</div>
-    <div class="metric locked">Time Horizon Analysis (Pro)</div>
+
+    analysisHTML=`
+    <div class="locked">Market Interpretation (Pro)</div>
+    <div class="locked">Pressure Breakdown (Pro)</div>
+    <div class="locked">Time Horizon (Pro)</div>
+    `;
+
+    riskHTML=`
+    <div class="locked">Risk Map (Pro)</div>
+    <div class="locked">Confidence Score (Pro)</div>
 
     <div class="upgrade">
-    Unlock full model insights<br><br>
-    <button onclick="upgrade()">Upgrade to Pro</button>
+    Unlock full model<br><br>
+    <button onclick="upgrade()">Upgrade</button>
     </div>
     `;
   }
 
-  document.getElementById("output").innerHTML = outputHTML;
+  overview.innerHTML=overviewHTML;
+  analysis.innerHTML=analysisHTML;
+  risk.innerHTML=riskHTML;
+
 }
 
-function upgrade() {
-  alert("Redirect to Gumroad / Payment Page");
-  // später ersetzen:
-  // window.location.href = "DEIN-GUMROAD-LINK";
+function upgrade(){
+  alert("Redirect to Gumroad");
+  // window.location.href="DEIN-LINK";
 }
 
 </script>
