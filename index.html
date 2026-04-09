@@ -5,49 +5,44 @@
 <title>BondStats Terminal Pro</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <style>
 
 /* ===== BASE ===== */
 body{
 margin:0;
-font-family:-apple-system,system-ui;
-background:#050a16;
+font-family:system-ui;
+background:#040812;
 color:#e2e8f0;
 }
 
 .container{
-max-width:1700px;
+max-width:1600px;
 margin:auto;
 padding:25px;
 }
 
-/* HEADER */
-.header{
+h1{
 margin-bottom:20px;
 }
 
-.sub{
-color:#94a3b8;
-font-size:14px;
-}
+/* ===== LAYOUT ===== */
 
-/* GRID */
 .grid{
 display:grid;
 grid-template-columns:420px 1fr;
 gap:20px;
 }
 
-/* PANEL */
+/* ===== PANEL ===== */
+
 .panel{
 background:#0f172a;
 padding:20px;
 border-radius:12px;
 }
 
-/* INPUT */
+/* ===== INPUT ===== */
+
 label{
 font-size:12px;
 color:#94a3b8;
@@ -66,6 +61,7 @@ color:white;
 button{
 width:100%;
 padding:12px;
+background:#f97316;
 border:none;
 color:white;
 font-weight:bold;
@@ -73,16 +69,12 @@ cursor:pointer;
 margin-top:8px;
 }
 
-.run{background:#f97316;}
-.shock{background:#fb923c;}
-.pro{background:#2563eb;}
+/* ===== METRICS ===== */
 
-/* METRICS */
 .metrics{
 display:grid;
 grid-template-columns:repeat(5,1fr);
 gap:10px;
-margin-bottom:15px;
 }
 
 .metric{
@@ -100,14 +92,22 @@ color:#94a3b8;
 font-size:20px;
 }
 
-/* CHART GRID */
+/* ===== CHARTS ===== */
+
 .charts{
 display:grid;
 grid-template-columns:1fr 1fr;
 gap:15px;
+margin-top:15px;
 }
 
-/* TABLE */
+canvas{
+background:#020617;
+border-radius:10px;
+}
+
+/* ===== TABLE ===== */
+
 table{
 width:100%;
 margin-top:10px;
@@ -119,9 +119,10 @@ padding:6px;
 border-bottom:1px solid #1e293b;
 }
 
-/* PRO LOCK */
+/* ===== PRO LOCK ===== */
+
 .lock{
-opacity:0.25;
+opacity:0.2;
 position:relative;
 }
 
@@ -134,41 +135,28 @@ color:#f97316;
 font-size:11px;
 }
 
-/* EXPLAIN */
-.explain{
-margin-top:15px;
-font-size:13px;
-color:#94a3b8;
-}
+/* ===== BUTTON ===== */
 
-/* FOOT */
-.footer{
-margin-top:20px;
-font-size:12px;
-color:#64748b;
+.upgrade{
+background:#2563eb;
 }
 
 </style>
-</head>
 
+</head>
 <body>
 
 <div class="container">
 
-<div class="header">
 <h1>Defense Bond Impact Terminal</h1>
-<div class="sub">
-Simulate how fiscal expansion impacts bond markets, yield curves, and portfolio positioning.
-</div>
-</div>
 
 <div class="grid">
 
-<!-- LEFT -->
+<!-- LEFT PANEL -->
 
 <div class="panel">
 
-<label>Defense Spending ($bn)</label>
+<label>Defense Spending</label>
 <input type="range" id="spending" min="0" max="400" value="120">
 
 <label>Inflation</label>
@@ -192,15 +180,17 @@ Simulate how fiscal expansion impacts bond markets, yield curves, and portfolio 
 <option>Restrictive</option>
 </select>
 
-<button class="run" onclick="run()">Run Model</button>
-<button class="shock" onclick="shock()">Shock Scenario</button>
-<button class="pro" onclick="upgrade()">Unlock Pro</button>
+<button onclick="run()">Run Model</button>
+<button onclick="shock()">Shock Scenario</button>
+<button class="upgrade" onclick="upgrade()">Unlock Pro</button>
 
 </div>
 
-<!-- RIGHT -->
+<!-- RIGHT PANEL -->
 
 <div class="panel">
+
+<!-- METRICS -->
 
 <div class="metrics">
 <div class="metric"><div class="metric-title">Impact</div><div id="impact"></div></div>
@@ -210,74 +200,40 @@ Simulate how fiscal expansion impacts bond markets, yield curves, and portfolio 
 <div class="metric"><div class="metric-title">Decision</div><div id="decision"></div></div>
 </div>
 
+<!-- CHARTS -->
+
 <div class="charts">
-<canvas id="timeline"></canvas>
-<canvas id="curve"></canvas>
-<canvas id="factors"></canvas>
-<canvas id="compare"></canvas>
+<canvas id="timeline" width="500" height="200"></canvas>
+<canvas id="curve" width="500" height="200"></canvas>
+<canvas id="factors" width="500" height="200"></canvas>
+<canvas id="compareChart" width="500" height="200"></canvas>
 </div>
+
+<!-- TABLE -->
 
 <table id="table"></table>
 
+<!-- PRO -->
+
 <div id="proArea" class="lock">
+
 <h3>Advanced Analysis</h3>
+
 <div id="analysis"></div>
 <div id="risk"></div>
-<div id="compareText"></div>
-</div>
-
-<div id="explain" class="explain"></div>
+<div id="compare"></div>
 
 </div>
 
 </div>
 
-<div class="footer">
-BondStats Terminal • Prototype v5 • Built for macro & fixed income analysis
 </div>
 
 </div>
 
 <script>
 
-/* ===== STATE ===== */
-let pro = false;
-
-/* ===== CHARTS ===== */
-
-let timelineChart, curveChart, factorChart, compareChart;
-
-/* INIT CHARTS */
-function initCharts(){
-
-timelineChart = new Chart(document.getElementById("timeline"),{
-type:"line",
-data:{labels:[1,2,3,4,5,6,7,8,9,10],
-datasets:[{label:"Impact",data:[],borderColor:"orange"}]}
-});
-
-curveChart = new Chart(document.getElementById("curve"),{
-type:"line",
-data:{labels:["2Y","5Y","10Y","20Y","30Y"],
-datasets:[{label:"Yield Curve",data:[],borderColor:"cyan"}]}
-});
-
-factorChart = new Chart(document.getElementById("factors"),{
-type:"bar",
-data:{labels:["Supply","Inflation","Liquidity","Volatility"],
-datasets:[{data:[],backgroundColor:"orange"}]}
-});
-
-compareChart = new Chart(document.getElementById("compare"),{
-type:"line",
-data:{labels:[1,2,3,4,5,6,7,8,9,10],
-datasets:[
-{label:"Base",data:[],borderColor:"orange"},
-{label:"Stress",data:[],borderColor:"red"}
-]}
-});
-
-}
+let pro=false;
 
 /* ===== MODEL ===== */
 
@@ -289,19 +245,115 @@ i.spending*0.2 +
 (i.liquidity==="Weak"?20:5) +
 (i.policy==="Restrictive"?15:5);
 
-impact = Math.min(impact,100);
+impact=Math.min(impact,100);
 
-let confidence = 70-(i.liquidity==="Weak"?20:5);
+let confidence=70-(i.liquidity==="Weak"?20:5);
 
-let regime = impact<40?"Stable":impact<70?"Adjustment":"Repricing";
-let signal = impact<30?"Weak":impact<60?"Building":"Strong";
+let regime=impact<40?"Stable":impact<70?"Adjustment":"Repricing";
 
-let decision =
+let signal=impact<30?"Weak":impact<60?"Building":"Strong";
+
+let decision=
 impact>70?"Reduce Duration":
 impact>40?"Hedge Risk":
 "Hold";
 
 return {impact,confidence,regime,signal,decision};
+
+}
+
+/* ===== TIMELINE ===== */
+
+function drawTimeline(score){
+
+let ctx=timeline.getContext("2d");
+ctx.clearRect(0,0,500,200);
+
+ctx.strokeStyle="orange";
+ctx.beginPath();
+
+for(let i=0;i<30;i++){
+let y=200-(score*(i/30))*1.5;
+ctx.lineTo(i*16,y);
+}
+
+ctx.stroke();
+
+}
+
+/* ===== CURVE ===== */
+
+function drawCurve(score){
+
+let ctx=curve.getContext("2d");
+ctx.clearRect(0,0,500,200);
+
+let base=[2,2.2,2.5,3,3.3];
+let adj=base.map(x=>x+score/80);
+
+ctx.strokeStyle="cyan";
+ctx.beginPath();
+
+adj.forEach((v,i)=>{
+ctx.lineTo(i*100,200-v*40);
+});
+
+ctx.stroke();
+
+}
+
+/* ===== FACTORS ===== */
+
+function drawFactors(score){
+
+let ctx=factors.getContext("2d");
+ctx.clearRect(0,0,500,200);
+
+let vals=[score,score*0.8,score*0.6,score*0.5];
+
+vals.forEach((v,i)=>{
+ctx.fillStyle="orange";
+ctx.fillRect(i*100,200-v*1.5,50,v*1.5);
+});
+
+}
+
+/* ===== COMPARE ===== */
+
+function drawCompare(score){
+
+let ctx=compareChart.getContext("2d");
+ctx.clearRect(0,0,500,200);
+
+ctx.strokeStyle="orange";
+ctx.beginPath();
+
+for(let i=0;i<20;i++){
+ctx.lineTo(i*20,200-(score*(i/20)));
+}
+ctx.stroke();
+
+ctx.strokeStyle="red";
+ctx.beginPath();
+
+for(let i=0;i<20;i++){
+ctx.lineTo(i*20,200-((score+20)*(i/20)));
+}
+ctx.stroke();
+
+}
+
+/* ===== TABLE ===== */
+
+function buildTable(score){
+
+table.innerHTML=`
+<tr><td>Supply</td><td>${score>60?"High":"Moderate"}</td></tr>
+<tr><td>Inflation</td><td>${score>50?"Elevated":"Contained"}</td></tr>
+<tr><td>Liquidity</td><td>${score>60?"Weak":"Normal"}</td></tr>
+<tr><td>Volatility</td><td>${score>60?"High":"Moderate"}</td></tr>
+<tr><td>Term Premium</td><td>${score>60?"Rising":"Stable"}</td></tr>
+`;
 
 }
 
@@ -316,89 +368,38 @@ liquidity:liquidity.value,
 policy:policy.value
 };
 
-let d = compute(i);
+let d=compute(i);
 
-/* METRICS */
 impact.innerText=Math.round(d.impact);
 confidence.innerText=Math.round(d.confidence);
 regime.innerText=d.regime;
 signal.innerText=d.signal;
+decision.innerText=d.decision;
 
-/* FREE VS PRO */
-decision.innerText = pro
-? d.decision
-: "🔒 Pro Only";
-
-/* CHARTS */
-
-timelineChart.data.datasets[0].data =
-Array.from({length:10},(_,i)=>d.impact*(i/10));
-
-timelineChart.update();
-
-curveChart.data.datasets[0].data =
-[2,2.2,2.5,3,3.3].map(x=>x+d.impact/80);
-
-curveChart.update();
-
-factorChart.data.datasets[0].data =
-[d.impact,d.impact*0.8,d.impact*0.6,d.impact*0.5];
-
-factorChart.update();
-
-compareChart.data.datasets[0].data =
-Array.from({length:10},(_,i)=>d.impact*(i/10));
-
-compareChart.data.datasets[1].data =
-Array.from({length:10},(_,i)=>(d.impact+20)*(i/10));
-
-compareChart.update();
-
-/* TABLE */
-
-table.innerHTML=`
-<tr><td>Supply</td><td>${d.impact>60?"High":"Moderate"}</td></tr>
-<tr><td>Inflation</td><td>${d.impact>50?"Elevated":"Contained"}</td></tr>
-<tr><td>Liquidity</td><td>${d.impact>60?"Weak":"Normal"}</td></tr>
-<tr><td>Volatility</td><td>${d.impact>60?"High":"Moderate"}</td></tr>
-<tr><td>Term Premium</td><td>${d.impact>60?"Rising":"Stable"}</td></tr>
-`;
+drawTimeline(d.impact);
+drawCurve(d.impact);
+drawFactors(d.impact);
+drawCompare(d.impact);
+buildTable(d.impact);
 
 /* PRO */
 
 if(pro){
 
-proArea.classList.remove("lock");
+analysis.innerHTML=`Markets in ${d.regime} regime driven by fiscal expansion.`;
 
-analysis.innerHTML=`Markets entering ${d.regime} phase driven by fiscal expansion.`;
+risk.innerHTML=`Volatility: ${d.impact>60?"High":"Moderate"}`;
 
-risk.innerHTML=`Volatility expected to remain ${d.impact>60?"elevated":"moderate"}.`;
-
-compareText.innerHTML=`Scenario delta: +20 stress impact`;
-
-}else{
-
-proArea.classList.add("lock");
-
-analysis.innerHTML="🔒 Unlock deeper macro analysis";
-risk.innerHTML="🔒 Risk decomposition available in Pro";
-compareText.innerHTML="🔒 Scenario comparison in Pro";
+compare.innerHTML=`Scenario delta: +20 stress impact`;
 
 }
-
-/* EXPLAIN */
-
-explain.innerHTML = `
-Higher defense spending increases bond issuance, which pressures yields.
-Markets typically react to supply shocks before inflation fully adjusts.
-`;
 
 }
 
 /* ===== SHOCK ===== */
 
 function shock(){
-spending.value = Math.min(+spending.value+120,400);
+spending.value=Math.min(+spending.value+120,400);
 inflation.value="High";
 liquidity.value="Weak";
 policy.value="Restrictive";
@@ -409,13 +410,11 @@ run();
 
 function upgrade(){
 pro=true;
+proArea.classList.remove("lock");
 run();
-alert("Pro activated (connect Stripe next)");
+alert("Pro unlocked (connect Stripe next)");
 }
 
-/* INIT */
-
-initCharts();
 run();
 
 </script>
