@@ -2,45 +2,30 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>BondStats Terminal Pro Elite</title>
+<title>BondStats Terminal Pro</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 
-/* ================= BASE ================= */
-
+/* ===== BASE ===== */
 body{
 margin:0;
-font-family:-apple-system,system-ui;
-background:#030712;
+font-family:system-ui;
+background:#040812;
 color:#e2e8f0;
 }
 
 .container{
-max-width:1800px;
+max-width:1600px;
 margin:auto;
 padding:25px;
 }
 
-/* ================= HEADER ================= */
-
-.header{
+h1{
 margin-bottom:20px;
 }
 
-h1{
-margin:0;
-font-size:32px;
-}
-
-.sub{
-color:#94a3b8;
-font-size:14px;
-}
-
-/* ================= GRID ================= */
+/* ===== LAYOUT ===== */
 
 .grid{
 display:grid;
@@ -48,16 +33,15 @@ grid-template-columns:420px 1fr;
 gap:20px;
 }
 
-/* ================= PANEL ================= */
+/* ===== PANEL ===== */
 
 .panel{
 background:#0f172a;
 padding:20px;
-border-radius:14px;
-box-shadow:0 10px 40px rgba(0,0,0,0.4);
+border-radius:12px;
 }
 
-/* ================= INPUT ================= */
+/* ===== INPUT ===== */
 
 label{
 font-size:12px;
@@ -72,37 +56,31 @@ margin-bottom:12px;
 background:#1e293b;
 border:none;
 color:white;
-border-radius:6px;
 }
 
 button{
 width:100%;
 padding:12px;
+background:#f97316;
 border:none;
 color:white;
 font-weight:bold;
 cursor:pointer;
 margin-top:8px;
-border-radius:6px;
 }
 
-.run{background:#f97316;}
-.shock{background:#fb923c;}
-.pro{background:#2563eb;}
-
-/* ================= METRICS ================= */
+/* ===== METRICS ===== */
 
 .metrics{
 display:grid;
 grid-template-columns:repeat(5,1fr);
-gap:12px;
-margin-bottom:15px;
+gap:10px;
 }
 
 .metric{
 background:#020617;
-padding:14px;
-border-radius:10px;
+padding:12px;
+border-radius:8px;
 }
 
 .metric-title{
@@ -111,24 +89,28 @@ color:#94a3b8;
 }
 
 .metric-value{
-font-size:22px;
-font-weight:bold;
+font-size:20px;
 }
 
-/* ================= CHART GRID ================= */
+/* ===== CHARTS ===== */
 
 .charts{
 display:grid;
 grid-template-columns:1fr 1fr;
 gap:15px;
-margin-top:10px;
+margin-top:15px;
 }
 
-/* ================= TABLE ================= */
+canvas{
+background:#020617;
+border-radius:10px;
+}
+
+/* ===== TABLE ===== */
 
 table{
 width:100%;
-margin-top:15px;
+margin-top:10px;
 font-size:12px;
 }
 
@@ -137,48 +119,36 @@ padding:6px;
 border-bottom:1px solid #1e293b;
 }
 
-/* ================= LOCK ================= */
+/* ===== PRO LOCK ===== */
 
 .lock{
-filter: blur(4px);
-pointer-events:none;
+opacity:0.2;
 position:relative;
 }
 
 .lock::after{
-content:"Upgrade to Pro";
+content:"PRO";
 position:absolute;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-background:#020617;
-padding:10px 15px;
+top:10px;
+right:10px;
 color:#f97316;
-border-radius:6px;
+font-size:11px;
 }
 
-/* ================= TEXT ================= */
+/* ===== BUTTON ===== */
 
-.section{
-margin-top:15px;
-font-size:13px;
-color:#94a3b8;
-line-height:1.5;
+.upgrade{
+background:#2563eb;
 }
 
 </style>
-</head>
 
+</head>
 <body>
 
 <div class="container">
 
-<div class="header">
 <h1>Defense Bond Impact Terminal</h1>
-<div class="sub">
-Institutional-grade macro simulation for bond markets, yield curves, and duration positioning.
-</div>
-</div>
 
 <div class="grid">
 
@@ -186,33 +156,33 @@ Institutional-grade macro simulation for bond markets, yield curves, and duratio
 
 <div class="panel">
 
-<label>Defense Spending ($bn)</label>
+<label>Defense Spending</label>
 <input type="range" id="spending" min="0" max="400" value="120">
 
-<label>Inflation Expectations</label>
+<label>Inflation</label>
 <select id="inflation">
 <option>Low</option>
 <option selected>Moderate</option>
 <option>High</option>
 </select>
 
-<label>Market Liquidity</label>
+<label>Liquidity</label>
 <select id="liquidity">
 <option>Strong</option>
 <option selected>Normal</option>
 <option>Weak</option>
 </select>
 
-<label>Monetary Policy</label>
+<label>Policy</label>
 <select id="policy">
 <option>Supportive</option>
 <option selected>Neutral</option>
 <option>Restrictive</option>
 </select>
 
-<button class="run" onclick="runModel()">Run Model</button>
-<button class="shock" onclick="applyShock()">Shock Scenario</button>
-<button class="pro" onclick="upgrade()">Unlock Pro</button>
+<button onclick="run()">Run Model</button>
+<button onclick="shock()">Shock Scenario</button>
+<button class="upgrade" onclick="upgrade()">Unlock Pro</button>
 
 </div>
 
@@ -220,57 +190,39 @@ Institutional-grade macro simulation for bond markets, yield curves, and duratio
 
 <div class="panel">
 
+<!-- METRICS -->
+
 <div class="metrics">
-
-<div class="metric">
-<div class="metric-title">Impact</div>
-<div id="impact" class="metric-value"></div>
+<div class="metric"><div class="metric-title">Impact</div><div id="impact"></div></div>
+<div class="metric"><div class="metric-title">Confidence</div><div id="confidence"></div></div>
+<div class="metric"><div class="metric-title">Regime</div><div id="regime"></div></div>
+<div class="metric"><div class="metric-title">Signal</div><div id="signal"></div></div>
+<div class="metric"><div class="metric-title">Decision</div><div id="decision"></div></div>
 </div>
 
-<div class="metric">
-<div class="metric-title">Confidence</div>
-<div id="confidence" class="metric-value"></div>
-</div>
-
-<div class="metric">
-<div class="metric-title">Regime</div>
-<div id="regime" class="metric-value"></div>
-</div>
-
-<div class="metric">
-<div class="metric-title">Signal</div>
-<div id="signal" class="metric-value"></div>
-</div>
-
-<div class="metric">
-<div class="metric-title">Decision</div>
-<div id="decision" class="metric-value"></div>
-</div>
-
-</div>
+<!-- CHARTS -->
 
 <div class="charts">
-<canvas id="timeline"></canvas>
-<canvas id="curve"></canvas>
-<canvas id="factors"></canvas>
-<canvas id="compare"></canvas>
+<canvas id="timeline" width="500" height="200"></canvas>
+<canvas id="curve" width="500" height="200"></canvas>
+<canvas id="factors" width="500" height="200"></canvas>
+<canvas id="compareChart" width="500" height="200"></canvas>
 </div>
+
+<!-- TABLE -->
 
 <table id="table"></table>
 
-<div id="proArea">
+<!-- PRO -->
+
+<div id="proArea" class="lock">
 
 <h3>Advanced Analysis</h3>
+
 <div id="analysis"></div>
 <div id="risk"></div>
-<div id="scenario"></div>
+<div id="compare"></div>
 
-</div>
-
-<div id="insight" class="section"></div>
-
-<div class="section">
-<button onclick="exportReport()">Export Report</button>
 </div>
 
 </div>
@@ -278,613 +230,192 @@ Institutional-grade macro simulation for bond markets, yield curves, and duratio
 </div>
 
 </div>
+
 <script>
 
-/* ================= STATE ================= */
+let pro=false;
 
-let pro = localStorage.getItem("bondstats_pro") === "true";
+/* ===== MODEL ===== */
 
-/* ================= CORE MODEL ================= */
+function compute(i){
 
-function computeModel(input){
+let impact =
+i.spending*0.2 +
+(i.inflation==="High"?25:10) +
+(i.liquidity==="Weak"?20:5) +
+(i.policy==="Restrictive"?15:5);
 
-let baseImpact =
-input.spending * 0.22;
+impact=Math.min(impact,100);
 
-let inflationImpact =
-input.inflation === "High" ? 30 :
-input.inflation === "Moderate" ? 15 : 5;
+let confidence=70-(i.liquidity==="Weak"?20:5);
 
-let liquidityImpact =
-input.liquidity === "Weak" ? 25 :
-input.liquidity === "Normal" ? 10 : -5;
+let regime=impact<40?"Stable":impact<70?"Adjustment":"Repricing";
 
-let policyImpact =
-input.policy === "Restrictive" ? 20 :
-input.policy === "Neutral" ? 10 : -5;
+let signal=impact<30?"Weak":impact<60?"Building":"Strong";
 
-/* Combined */
+let decision=
+impact>70?"Reduce Duration":
+impact>40?"Hedge Risk":
+"Hold";
 
-let impact = baseImpact + inflationImpact + liquidityImpact + policyImpact;
-impact = Math.max(0, Math.min(impact,100));
+return {impact,confidence,regime,signal,decision};
 
-/* Confidence */
-
-let confidence =
-70
-- (input.liquidity === "Weak" ? 15 : 5)
-- (input.inflation === "High" ? 10 : 0);
-
-/* Regime */
-
-let regime =
-impact < 35 ? "Stable" :
-impact < 65 ? "Adjustment" :
-"Repricing";
-
-/* Signal Strength */
-
-let signal =
-impact < 25 ? "Weak" :
-impact < 55 ? "Building" :
-impact < 80 ? "Strong" :
-"Extreme";
-
-/* Decision Engine */
-
-let decision;
-
-if(impact > 80){
-decision = "Aggressively reduce duration | Shift to short-end | Increase hedging";
-}
-else if(impact > 60){
-decision = "Reduce duration | Avoid long-end exposure | Monitor auctions";
-}
-else if(impact > 40){
-decision = "Hedge duration risk | Stay flexible | Watch supply signals";
-}
-else{
-decision = "Maintain positioning | No immediate stress in bond markets";
 }
 
-/* Risk Components */
+/* ===== TIMELINE ===== */
 
-let risk = {
-volatility: impact > 70 ? "High" : impact > 40 ? "Moderate" : "Low",
-termPremium: impact > 60 ? "Rising" : "Stable",
-liquidityStress: input.liquidity === "Weak" ? "Elevated" : "Contained",
-inflationPressure: input.inflation === "High" ? "Strong" : "Moderate"
-};
+function drawTimeline(score){
 
-/* Scenario Delta */
+let ctx=timeline.getContext("2d");
+ctx.clearRect(0,0,500,200);
 
-let stressImpact = Math.min(impact + 20, 100);
-let delta = stressImpact - impact;
+ctx.strokeStyle="orange";
+ctx.beginPath();
 
-/* Narrative Engine */
+for(let i=0;i<30;i++){
+let y=200-(score*(i/30))*1.5;
+ctx.lineTo(i*16,y);
+}
 
-let narrative = `
-Markets are currently in a ${regime} phase, driven primarily by
-fiscal expansion through defense spending.
+ctx.stroke();
 
-The increase in issuance is creating upward pressure on yields,
-while ${input.inflation.toLowerCase()} inflation expectations
-shape the long-end response.
+}
 
-Liquidity conditions are ${input.liquidity.toLowerCase()},
-which ${input.liquidity === "Weak" ? "amplifies" : "moderates"}
-the transmission of supply shocks into pricing.
+/* ===== CURVE ===== */
+
+function drawCurve(score){
+
+let ctx=curve.getContext("2d");
+ctx.clearRect(0,0,500,200);
+
+let base=[2,2.2,2.5,3,3.3];
+let adj=base.map(x=>x+score/80);
+
+ctx.strokeStyle="cyan";
+ctx.beginPath();
+
+adj.forEach((v,i)=>{
+ctx.lineTo(i*100,200-v*40);
+});
+
+ctx.stroke();
+
+}
+
+/* ===== FACTORS ===== */
+
+function drawFactors(score){
+
+let ctx=factors.getContext("2d");
+ctx.clearRect(0,0,500,200);
+
+let vals=[score,score*0.8,score*0.6,score*0.5];
+
+vals.forEach((v,i)=>{
+ctx.fillStyle="orange";
+ctx.fillRect(i*100,200-v*1.5,50,v*1.5);
+});
+
+}
+
+/* ===== COMPARE ===== */
+
+function drawCompare(score){
+
+let ctx=compareChart.getContext("2d");
+ctx.clearRect(0,0,500,200);
+
+ctx.strokeStyle="orange";
+ctx.beginPath();
+
+for(let i=0;i<20;i++){
+ctx.lineTo(i*20,200-(score*(i/20)));
+}
+ctx.stroke();
+
+ctx.strokeStyle="red";
+ctx.beginPath();
+
+for(let i=0;i<20;i++){
+ctx.lineTo(i*20,200-((score+20)*(i/20)));
+}
+ctx.stroke();
+
+}
+
+/* ===== TABLE ===== */
+
+function buildTable(score){
+
+table.innerHTML=`
+<tr><td>Supply</td><td>${score>60?"High":"Moderate"}</td></tr>
+<tr><td>Inflation</td><td>${score>50?"Elevated":"Contained"}</td></tr>
+<tr><td>Liquidity</td><td>${score>60?"Weak":"Normal"}</td></tr>
+<tr><td>Volatility</td><td>${score>60?"High":"Moderate"}</td></tr>
+<tr><td>Term Premium</td><td>${score>60?"Rising":"Stable"}</td></tr>
 `;
 
-/* Insight Layer */
-
-let insight = `
-Higher defense spending increases bond issuance,
-forcing markets to absorb additional supply.
-
-This typically results in upward yield pressure
-before inflation fully materializes.
-
-Investors adjust duration exposure ahead of macro confirmation.
-`;
-
-return {
-impact,
-confidence,
-regime,
-signal,
-decision,
-risk,
-stressImpact,
-delta,
-narrative,
-insight
-};
-
 }
 
-/* ================= INPUT HANDLER ================= */
+/* ===== RUN ===== */
 
-function getInputs(){
-return {
-spending: +document.getElementById("spending").value,
-inflation: document.getElementById("inflation").value,
-liquidity: document.getElementById("liquidity").value,
-policy: document.getElementById("policy").value
+function run(){
+
+let i={
+spending:+spending.value,
+inflation:inflation.value,
+liquidity:liquidity.value,
+policy:policy.value
 };
-}
 
-/* ================= MAIN RUN ================= */
+let d=compute(i);
 
-function runModel(){
+impact.innerText=Math.round(d.impact);
+confidence.innerText=Math.round(d.confidence);
+regime.innerText=d.regime;
+signal.innerText=d.signal;
+decision.innerText=d.decision;
 
-let input = getInputs();
-let data = computeModel(input);
+drawTimeline(d.impact);
+drawCurve(d.impact);
+drawFactors(d.impact);
+drawCompare(d.impact);
+buildTable(d.impact);
 
-/* METRICS */
-
-impact.innerText = Math.round(data.impact);
-confidence.innerText = Math.round(data.confidence) + "%";
-regime.innerText = data.regime;
-signal.innerText = data.signal;
-
-/* FREE VS PRO DECISION */
-
-decision.innerText = pro
-? data.decision
-: "🔒 Upgrade to Pro";
-
-/* TABLE */
-
-table.innerHTML = `
-<tr><td>Supply Pressure</td><td>${data.impact > 60 ? "High" : "Moderate"}</td></tr>
-<tr><td>Inflation Pressure</td><td>${data.risk.inflationPressure}</td></tr>
-<tr><td>Liquidity Stress</td><td>${data.risk.liquidityStress}</td></tr>
-<tr><td>Volatility</td><td>${data.risk.volatility}</td></tr>
-<tr><td>Term Premium</td><td>${data.risk.termPremium}</td></tr>
-`;
-
-/* PRO AREA */
+/* PRO */
 
 if(pro){
 
-proArea.classList.remove("lock");
+analysis.innerHTML=`Markets in ${d.regime} regime driven by fiscal expansion.`;
 
-analysis.innerHTML = data.narrative;
+risk.innerHTML=`Volatility: ${d.impact>60?"High":"Moderate"}`;
 
-risk.innerHTML = `
-Volatility: ${data.risk.volatility}<br>
-Term Premium: ${data.risk.termPremium}<br>
-Liquidity Stress: ${data.risk.liquidityStress}
-`;
-
-scenario.innerHTML = `
-Base Impact: ${Math.round(data.impact)}<br>
-Stress Impact: ${Math.round(data.stressImpact)}<br>
-Delta: +${Math.round(data.delta)}
-`;
-
-}else{
-
-proArea.classList.add("lock");
-
-analysis.innerHTML = "🔒 Unlock full macro narrative";
-risk.innerHTML = "🔒 Unlock risk decomposition";
-scenario.innerHTML = "🔒 Unlock scenario analysis";
+compare.innerHTML=`Scenario delta: +20 stress impact`;
 
 }
 
-/* INSIGHT */
-
-insight.innerHTML = data.insight;
-
-/* CALL CHARTS */
-
-updateCharts(data);
-
 }
 
-/* ================= SHOCK ================= */
+/* ===== SHOCK ===== */
 
-function applyShock(){
-
-spending.value = Math.min(+spending.value + 120, 400);
-inflation.value = "High";
-liquidity.value = "Weak";
-policy.value = "Restrictive";
-
-runModel();
-
+function shock(){
+spending.value=Math.min(+spending.value+120,400);
+inflation.value="High";
+liquidity.value="Weak";
+policy.value="Restrictive";
+run();
 }
 
-/* ================= UPGRADE ================= */
+/* ===== UPGRADE ===== */
 
 function upgrade(){
-
-localStorage.setItem("bondstats_pro","true");
-pro = true;
-
-runModel();
-
-}
-
-/* ================= EXPORT ================= */
-
-function exportReport(){
-
-let text = `
-BondStats Terminal Report
-
-Impact: ${impact.innerText}
-Confidence: ${confidence.innerText}
-Regime: ${regime.innerText}
-Signal: ${signal.innerText}
-Decision: ${decision.innerText}
-
-`;
-
-let blob = new Blob([text],{type:"text/plain"});
-let a = document.createElement("a");
-a.href = URL.createObjectURL(blob);
-a.download = "bondstats_report.txt";
-a.click();
-
-}
-
-</script>
-<script>
-
-/* ================= CHART VARIABLES ================= */
-
-let timelineChart;
-let curveChart;
-let factorChart;
-let compareChart;
-
-/* ================= INIT CHARTS ================= */
-
-function initCharts(){
-
-/* TIMELINE CHART */
-
-timelineChart = new Chart(document.getElementById("timeline"),{
-type:"line",
-data:{
-labels:["T1","T2","T3","T4","T5","T6","T7","T8","T9","T10"],
-datasets:[{
-label:"Impact Path",
-data:[],
-borderColor:"#f97316",
-backgroundColor:"rgba(249,115,22,0.1)",
-tension:0.4,
-fill:true
-}]
-},
-options:{
-plugins:{
-legend:{display:false},
-title:{
-display:true,
-text:"Impact Trajectory"
-}
-},
-scales:{
-x:{
-ticks:{color:"#94a3b8"}
-},
-y:{
-ticks:{color:"#94a3b8"},
-grid:{color:"#1e293b"}
-}
-}
-}
-});
-
-/* YIELD CURVE */
-
-curveChart = new Chart(document.getElementById("curve"),{
-type:"line",
-data:{
-labels:["2Y","5Y","10Y","20Y","30Y"],
-datasets:[{
-label:"Yield Curve",
-data:[],
-borderColor:"#22d3ee",
-backgroundColor:"rgba(34,211,238,0.1)",
-tension:0.3,
-fill:true
-}]
-},
-options:{
-plugins:{
-legend:{display:false},
-title:{display:true,text:"Yield Curve Shift"}
-},
-scales:{
-y:{grid:{color:"#1e293b"}}
-}
-}
-});
-
-/* FACTORS */
-
-factorChart = new Chart(document.getElementById("factors"),{
-type:"bar",
-data:{
-labels:["Supply","Inflation","Liquidity","Volatility"],
-datasets:[{
-label:"Drivers",
-data:[],
-backgroundColor:"#f97316"
-}]
-},
-options:{
-plugins:{
-legend:{display:false},
-title:{display:true,text:"Factor Contribution"}
-},
-scales:{
-y:{grid:{color:"#1e293b"}}
-}
-}
-});
-
-/* COMPARE */
-
-compareChart = new Chart(document.getElementById("compare"),{
-type:"line",
-data:{
-labels:["T1","T2","T3","T4","T5","T6","T7","T8","T9","T10"],
-datasets:[
-{
-label:"Base",
-data:[],
-borderColor:"#f97316",
-tension:0.4
-},
-{
-label:"Stress",
-data:[],
-borderColor:"#ef4444",
-tension:0.4
-}
-]
-},
-options:{
-plugins:{
-title:{display:true,text:"Scenario Comparison"}
-},
-scales:{
-y:{grid:{color:"#1e293b"}}
-}
-}
-});
-
-}
-
-/* ================= UPDATE CHARTS ================= */
-
-function updateCharts(data){
-
-/* TIMELINE */
-
-timelineChart.data.datasets[0].data =
-Array.from({length:10},(_,i)=>data.impact*(i/10));
-
-timelineChart.update();
-
-/* CURVE */
-
-let baseCurve = [2,2.2,2.5,3,3.3];
-
-curveChart.data.datasets[0].data =
-baseCurve.map(v=>v + data.impact/70);
-
-curveChart.update();
-
-/* FACTORS */
-
-factorChart.data.datasets[0].data = [
-data.impact,
-data.impact * 0.8,
-data.impact * 0.6,
-data.impact * 0.5
-];
-
-factorChart.update();
-
-/* COMPARE */
-
-compareChart.data.datasets[0].data =
-Array.from({length:10},(_,i)=>data.impact*(i/10));
-
-compareChart.data.datasets[1].data =
-Array.from({length:10},(_,i)=>data.stressImpact*(i/10));
-
-compareChart.update();
-
-}
-
-/* ================= INIT CALL ================= */
-
-initCharts();
-
-</script>
-<script>
-
-/* ================= PRO VISUAL FEEDBACK ================= */
-
-function updateProVisual(){
-
-if(pro){
+pro=true;
 proArea.classList.remove("lock");
-}else{
-proArea.classList.add("lock");
+run();
+alert("Pro unlocked (connect Stripe next)");
 }
 
-}
-
-/* ================= TOOLTIP SYSTEM ================= */
-
-function showTooltip(text){
-
-let tip = document.createElement("div");
-
-tip.innerText = text;
-
-tip.style.position = "fixed";
-tip.style.bottom = "20px";
-tip.style.right = "20px";
-tip.style.background = "#020617";
-tip.style.color = "#e2e8f0";
-tip.style.padding = "10px 14px";
-tip.style.borderRadius = "6px";
-tip.style.fontSize = "12px";
-tip.style.boxShadow = "0 5px 20px rgba(0,0,0,0.5)";
-
-document.body.appendChild(tip);
-
-setTimeout(()=>tip.remove(),3000);
-
-}
-
-/* ================= AUTO INSIGHT BOOST ================= */
-
-function enhanceInsight(data){
-
-let extra = "";
-
-if(data.impact > 70){
-extra = "Markets may struggle to absorb issuance without repricing.";
-}
-else if(data.impact > 40){
-extra = "Watch supply-demand balance closely.";
-}
-else{
-extra = "No immediate structural stress detected.";
-}
-
-insight.innerHTML += "<br><br><b>Interpretation:</b> " + extra;
-
-}
-
-/* ================= ADVANCED DECISION (PRO) ================= */
-
-function advancedDecision(data){
-
-if(!pro) return;
-
-let adv;
-
-if(data.impact > 75){
-adv = "Rotate to short-duration assets | Increase hedging via futures";
-}
-else if(data.impact > 50){
-adv = "Reduce exposure to long-end | Consider defensive positioning";
-}
-else{
-adv = "Maintain duration allocation | Monitor macro signals";
-}
-
-decision.innerText = adv;
-
-}
-
-/* ================= UX IMPROVEMENT ================= */
-
-function highlightChanges(data){
-
-if(data.impact > 70){
-impact.style.color = "#ef4444";
-}
-else if(data.impact > 40){
-impact.style.color = "#f97316";
-}
-else{
-impact.style.color = "#22c55e";
-}
-
-}
-
-/* ================= SAVE SCENARIO ================= */
-
-function saveScenario(){
-
-let scenario = {
-spending: spending.value,
-inflation: inflation.value,
-liquidity: liquidity.value,
-policy: policy.value
-};
-
-localStorage.setItem("saved_scenario", JSON.stringify(scenario));
-
-showTooltip("Scenario saved");
-
-}
-
-/* ================= LOAD SCENARIO ================= */
-
-function loadScenario(){
-
-let saved = JSON.parse(localStorage.getItem("saved_scenario"));
-
-if(!saved) return;
-
-spending.value = saved.spending;
-inflation.value = saved.inflation;
-liquidity.value = saved.liquidity;
-policy.value = saved.policy;
-
-runModel();
-
-showTooltip("Scenario loaded");
-
-}
-
-/* ================= BUTTON INJECTION ================= */
-
-function injectExtraUI(){
-
-let panel = document.querySelector(".panel");
-
-let btn1 = document.createElement("button");
-btn1.innerText = "Save Scenario";
-btn1.onclick = saveScenario;
-
-let btn2 = document.createElement("button");
-btn2.innerText = "Load Scenario";
-btn2.onclick = loadScenario;
-
-panel.appendChild(btn1);
-panel.appendChild(btn2);
-
-}
-
-/* ================= EXTENDED RUN HOOK ================= */
-
-const originalRun = runModel;
-
-runModel = function(){
-
-originalRun();
-
-/* get data again */
-let input = getInputs();
-let data = computeModel(input);
-
-/* enhance */
-updateProVisual();
-enhanceInsight(data);
-advancedDecision(data);
-highlightChanges(data);
-
-};
-
-/* ================= INIT ================= */
-
-injectExtraUI();
-runModel();
+run();
 
 </script>
 
