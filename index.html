@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Defense Bond Impact Model</title>
+<style>
+body {
+  margin:0;
+  font-family: -apple-system, BlinkMacSystemFont;
+  background:#0b1220;
+  color:#e5e7eb;
+}
+
+.container {
+  max-width:1100px;
+  margin:auto;
+  padding:40px;
+}
+
+h1 {
+  font-size:34px;
+  margin-bottom:10px;
+}
+
+.subtitle {
+  color:#9ca3af;
+  margin-bottom:40px;
+}
+
+.card {
+  background:#111827;
+  padding:20px;
+  border-radius:10px;
+  margin-bottom:20px;
+}
+
+input, select {
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  background:#1f2937;
+  border:none;
+  color:white;
+  border-radius:6px;
+}
+
+button {
+  margin-top:20px;
+  padding:14px;
+  width:100%;
+  border:none;
+  border-radius:8px;
+  background:#f97316;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.output {
+  margin-top:30px;
+}
+
+.metric {
+  margin-bottom:10px;
+  font-size:18px;
+}
+
+.locked {
+  opacity:0.4;
+}
+
+.upgrade {
+  margin-top:20px;
+  padding:15px;
+  text-align:center;
+  background:#1f2937;
+  border-radius:8px;
+}
+
+.upgrade button {
+  background:#10b981;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Defense Bond Impact Model</h1>
+<div class="subtitle">
+Structured analysis of how defense spending impacts bond markets
+</div>
+
+<div class="card">
+<label>Defense Spending Increase ($bn)</label>
+<input type="range" id="spending" min="0" max="300" value="100">
+
+<label>Inflation Expectations</label>
+<select id="inflation">
+<option>Low</option>
+<option selected>Moderate</option>
+<option>High</option>
+</select>
+
+<label>Issuance Structure</label>
+<select id="issuance">
+<option>Short-term heavy</option>
+<option selected>Balanced</option>
+<option>Long-term heavy</option>
+</select>
+
+<label>Market Liquidity</label>
+<select id="liquidity">
+<option>Strong</option>
+<option selected>Normal</option>
+<option>Weak</option>
+</select>
+
+<button onclick="runModel()">Run Analysis</button>
+</div>
+
+<div class="card output" id="output">
+<div class="metric">Yield Pressure: -</div>
+<div class="metric">Curve Impact: -</div>
+<div class="metric">Supply Pressure: -</div>
+
+<div class="metric locked">Market Interpretation (Pro)</div>
+<div class="metric locked">Risk Level (Pro)</div>
+<div class="metric locked">Time Horizon Analysis (Pro)</div>
+
+<div class="upgrade">
+Unlock full model insights<br><br>
+<button onclick="upgrade()">Upgrade to Pro</button>
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let isPro = false;
+
+function runModel() {
+  let spending = document.getElementById("spending").value;
+  let inflation = document.getElementById("inflation").value;
+  let issuance = document.getElementById("issuance").value;
+  let liquidity = document.getElementById("liquidity").value;
+
+  let yield = "Neutral";
+  let curve = "Neutral";
+  let supply = "Moderate";
+
+  if (spending > 150) {
+    yield = "Upward pressure";
+    supply = "High";
+  }
+
+  if (inflation === "High") {
+    yield = "Strong upward pressure";
+  }
+
+  if (issuance === "Long-term heavy") {
+    curve = "Steepening";
+  }
+
+  if (liquidity === "Weak") {
+    supply = "Very High";
+  }
+
+  let outputHTML = `
+  <div class="metric">Yield Pressure: ${yield}</div>
+  <div class="metric">Curve Impact: ${curve}</div>
+  <div class="metric">Supply Pressure: ${supply}</div>
+  `;
+
+  if (isPro) {
+    outputHTML += `
+    <div class="metric">Market Interpretation: Markets are likely pricing increased issuance and shifting expectations.</div>
+    <div class="metric">Risk Level: Elevated volatility risk</div>
+    <div class="metric">Time Horizon: Short-term disruption, medium-term repricing</div>
+    `;
+  } else {
+    outputHTML += `
+    <div class="metric locked">Market Interpretation (Pro)</div>
+    <div class="metric locked">Risk Level (Pro)</div>
+    <div class="metric locked">Time Horizon Analysis (Pro)</div>
+
+    <div class="upgrade">
+    Unlock full model insights<br><br>
+    <button onclick="upgrade()">Upgrade to Pro</button>
+    </div>
+    `;
+  }
+
+  document.getElementById("output").innerHTML = outputHTML;
+}
+
+function upgrade() {
+  alert("Redirect to Gumroad / Payment Page");
+  // später ersetzen:
+  // window.location.href = "DEIN-GUMROAD-LINK";
+}
+
+</script>
+
+</body>
+</html>
