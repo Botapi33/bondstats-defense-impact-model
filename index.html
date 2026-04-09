@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Defense Bond Impact Terminal</title>
+<title>BondStats Terminal</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -10,126 +10,133 @@
 /* ===== GLOBAL ===== */
 
 body{
-  margin:0;
-  font-family:system-ui;
-  background:#050a16;
-  color:#e2e8f0;
+margin:0;
+font-family:system-ui;
+background:#050a16;
+color:#e2e8f0;
 }
 
 .container{
-  max-width:1500px;
-  margin:auto;
-  padding:25px;
-}
-
-h1{
-  font-size:34px;
-  margin-bottom:20px;
+max-width:1600px;
+margin:auto;
+padding:20px;
 }
 
 /* ===== GRID ===== */
 
-.grid{
-  display:grid;
-  grid-template-columns:400px 1fr;
-  gap:20px;
+.layout{
+display:grid;
+grid-template-columns:420px 1fr;
+gap:20px;
 }
 
 .panel{
-  background:#0f172a;
-  padding:20px;
-  border-radius:10px;
+background:#0f172a;
+padding:20px;
+border-radius:10px;
 }
 
 /* ===== INPUT ===== */
 
 label{
-  font-size:13px;
-  color:#94a3b8;
+font-size:12px;
+color:#94a3b8;
 }
 
 input,select{
-  width:100%;
-  margin-top:8px;
-  margin-bottom:12px;
-  padding:10px;
-  background:#1e293b;
-  border:none;
-  color:white;
+width:100%;
+margin-top:8px;
+margin-bottom:12px;
+padding:10px;
+background:#1e293b;
+border:none;
+color:white;
 }
 
 button{
-  width:100%;
-  padding:12px;
-  background:#f97316;
-  border:none;
-  color:white;
-  font-weight:bold;
-  margin-top:10px;
-  cursor:pointer;
+width:100%;
+padding:12px;
+background:#f97316;
+border:none;
+color:white;
+font-weight:bold;
+margin-top:10px;
+cursor:pointer;
 }
 
 /* ===== METRICS ===== */
 
 .metrics{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:10px;
-  margin-bottom:15px;
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:10px;
+margin-bottom:10px;
 }
 
 .metric{
-  background:#020617;
-  padding:12px;
-  border-radius:8px;
+background:#020617;
+padding:12px;
+border-radius:8px;
 }
 
 .metric-title{
-  font-size:12px;
-  color:#94a3b8;
+font-size:11px;
+color:#94a3b8;
 }
 
 .metric-value{
-  font-size:20px;
+font-size:20px;
 }
 
-/* ===== CHART ===== */
+/* ===== GRID OUTPUT ===== */
+
+.output-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:15px;
+}
+
+/* ===== CANVAS ===== */
 
 canvas{
-  background:#020617;
-  border-radius:10px;
-  margin-top:10px;
+background:#020617;
+border-radius:10px;
+}
+
+/* ===== TABLE ===== */
+
+table{
+width:100%;
+font-size:12px;
+}
+
+td{
+padding:6px;
+border-bottom:1px solid #1e293b;
+}
+
+/* ===== LOCK ===== */
+
+.lock{
+opacity:0.3;
 }
 
 /* ===== TABS ===== */
 
 .tabs{
-  display:flex;
-  gap:10px;
-  margin-bottom:10px;
+display:flex;
+gap:10px;
+margin-top:10px;
 }
 
 .tab{
-  padding:8px 12px;
-  background:#1e293b;
-  cursor:pointer;
+padding:8px 12px;
+background:#1e293b;
+cursor:pointer;
 }
 
 .active{
-  background:#f97316;
-}
-
-.lock{
-  opacity:0.3;
-}
-
-/* ===== PRO ===== */
-
-.pro-box{
-  margin-top:15px;
-  padding:10px;
-  background:#1e293b;
-  text-align:center;
+background:#f97316;
 }
 
 </style>
@@ -141,13 +148,13 @@ canvas{
 
 <h1>Defense Bond Impact Terminal</h1>
 
-<div class="grid">
+<div class="layout">
 
-<!-- INPUT PANEL -->
+<!-- INPUT -->
 
 <div class="panel">
 
-<label>Defense Spending ($bn)</label>
+<label>Defense Spending</label>
 <input type="range" id="spending" min="0" max="400" value="120">
 
 <label>Inflation</label>
@@ -171,49 +178,44 @@ canvas{
 <option>Restrictive</option>
 </select>
 
-<button onclick="run()">Run Model</button>
+<button onclick="run()">Run</button>
 <button onclick="shock()">Shock</button>
 
 </div>
 
-<!-- OUTPUT PANEL -->
+<!-- OUTPUT -->
 
 <div class="panel">
 
 <div class="metrics">
-<div class="metric">
-<div class="metric-title">Impact</div>
-<div class="metric-value" id="impact">0</div>
+<div class="metric"><div class="metric-title">Impact</div><div id="impact" class="metric-value"></div></div>
+<div class="metric"><div class="metric-title">Confidence</div><div id="confidence" class="metric-value"></div></div>
+<div class="metric"><div class="metric-title">Regime</div><div id="regime" class="metric-value"></div></div>
+<div class="metric"><div class="metric-title">Signal</div><div id="signal" class="metric-value"></div></div>
 </div>
 
-<div class="metric">
-<div class="metric-title">Confidence</div>
-<div class="metric-value" id="confidence">0</div>
+<div class="output-grid">
+
+<canvas id="timeline" width="600" height="200"></canvas>
+<canvas id="curve" width="600" height="200"></canvas>
+
+<canvas id="factors" width="600" height="200"></canvas>
+
+<div>
+<table id="table"></table>
 </div>
 
-<div class="metric">
-<div class="metric-title">Regime</div>
-<div class="metric-value" id="regime">-</div>
 </div>
-
-<div class="metric">
-<div class="metric-title">Signal</div>
-<div class="metric-value" id="signal">-</div>
-</div>
-</div>
-
-<canvas id="timeline" width="800" height="200"></canvas>
-<canvas id="curve" width="800" height="200"></canvas>
 
 <div class="tabs">
-<div class="tab active" onclick="tab('overview')">Overview</div>
-<div class="tab" onclick="tab('analysis')">Analysis</div>
+<div class="tab active" onclick="tab('narrative')">Narrative</div>
 <div class="tab" onclick="tab('risk')">Risk</div>
+<div class="tab" onclick="tab('compare')">Compare</div>
 </div>
 
-<div id="overview"></div>
-<div id="analysis" style="display:none"></div>
+<div id="narrative"></div>
 <div id="risk" style="display:none"></div>
+<div id="compare" style="display:none"></div>
 
 </div>
 
@@ -225,46 +227,38 @@ canvas{
 
 /* ===== MODEL ===== */
 
-function model(i){
+function compute(i){
 
-let score =
-i.spending*0.2 +
+let impact =
+i.spending*0.18 +
 (i.inflation==="High"?25:10) +
 (i.liquidity==="Weak"?20:5) +
 (i.policy==="Restrictive"?15:5);
 
-score = Math.min(score,100);
+impact=Math.min(impact,100);
 
-let confidence = 70 - (i.liquidity==="Weak"?20:5);
+let confidence=70-(i.liquidity==="Weak"?15:5);
 
-let regime =
-score<40?"Stable":
-score<70?"Adjustment":
-"Repricing";
+let regime=impact<40?"Stable":impact<70?"Adjustment":"Repricing";
+let signal=impact<30?"Weak":impact<60?"Building":"Strong";
 
-let signal =
-score<30?"Weak":
-score<60?"Developing":
-"Strong";
+return {impact,confidence,regime,signal};
 
-return {score,confidence,regime,signal};
 }
 
 /* ===== TIMELINE ===== */
 
-function drawTimeline(score){
+function timeline(score){
 
-let c=document.getElementById("timeline");
-let ctx=c.getContext("2d");
-
-ctx.clearRect(0,0,800,200);
+let ctx=timelineCanvas.getContext("2d");
+ctx.clearRect(0,0,600,200);
 
 ctx.strokeStyle="orange";
 ctx.beginPath();
 
-for(let t=0;t<10;t++){
-let y=200-(score*(t/10))*1.5;
-ctx.lineTo(t*80,y);
+for(let i=0;i<20;i++){
+let val=score*(i/20);
+ctx.lineTo(i*30,200-val*1.5);
 }
 
 ctx.stroke();
@@ -273,25 +267,50 @@ ctx.stroke();
 
 /* ===== CURVE ===== */
 
-function drawCurve(score){
+function curve(score){
 
-let c=document.getElementById("curve");
-let ctx=c.getContext("2d");
+let ctx=curveCanvas.getContext("2d");
+ctx.clearRect(0,0,600,200);
 
-ctx.clearRect(0,0,800,200);
-
-let base=[2,2.2,2.5,3,3.2];
-
-let curve=base.map(v=>v+score/100);
+let base=[2,2.2,2.5,3,3.3];
+let adjusted=base.map(x=>x+score/100);
 
 ctx.strokeStyle="cyan";
 ctx.beginPath();
 
-curve.forEach((v,i)=>{
-ctx.lineTo(i*150,200-v*30);
+adjusted.forEach((v,i)=>{
+ctx.lineTo(i*120,200-v*40);
 });
 
 ctx.stroke();
+
+}
+
+/* ===== FACTORS ===== */
+
+function factors(score){
+
+let ctx=factorsCanvas.getContext("2d");
+ctx.clearRect(0,0,600,200);
+
+let vals=[score,score*0.8,score*0.6,score*0.5];
+vals.forEach((v,i)=>{
+ctx.fillStyle="orange";
+ctx.fillRect(i*120,200-v*1.5,50,v*1.5);
+});
+
+}
+
+/* ===== TABLE ===== */
+
+function table(score){
+
+table.innerHTML=`
+<tr><td>Supply</td><td>${score>60?"High":"Moderate"}</td></tr>
+<tr><td>Inflation</td><td>${score>50?"Elevated":"Contained"}</td></tr>
+<tr><td>Liquidity</td><td>${score>60?"Weak":"Normal"}</td></tr>
+<tr><td>Volatility</td><td>${score>60?"High":"Moderate"}</td></tr>
+`;
 
 }
 
@@ -306,42 +325,36 @@ liquidity:liquidity.value,
 policy:policy.value
 };
 
-let d=model(i);
+let d=compute(i);
 
-impact.innerText=Math.round(d.score);
+impact.innerText=Math.round(d.impact);
 confidence.innerText=Math.round(d.confidence);
 regime.innerText=d.regime;
 signal.innerText=d.signal;
 
-/* OVERVIEW */
+timeline(d.impact);
+curve(d.impact);
+factors(d.impact);
+table(d.impact);
 
-overview.innerHTML = `
-Impact driven by fiscal expansion and macro conditions.
-`;
+/* Narrative */
 
-/* ANALYSIS */
+narrative.innerHTML=`Market entering ${d.regime} phase with ${d.signal} signal.`;
 
-analysis.innerHTML = `
-Markets likely in ${d.regime} phase.
-`;
+/* Risk */
 
-/* RISK */
+risk.innerHTML=`Volatility ${d.impact>60?"High":"Moderate"}`;
 
-risk.innerHTML = `
-Volatility: ${d.score>60?"High":"Moderate"}
-`;
+/* Compare */
 
-/* CHARTS */
-
-drawTimeline(d.score);
-drawCurve(d.score);
+compare.innerHTML=`Base ${d.impact} | Stress ${d.impact+20}`;
 
 }
 
 /* ===== SHOCK ===== */
 
 function shock(){
-spending.value = Math.min(+spending.value+100,400);
+spending.value=Math.min(+spending.value+100,400);
 inflation.value="High";
 liquidity.value="Weak";
 policy.value="Restrictive";
@@ -351,7 +364,7 @@ run();
 /* ===== TAB ===== */
 
 function tab(name){
-["overview","analysis","risk"].forEach(id=>{
+["narrative","risk","compare"].forEach(id=>{
 document.getElementById(id).style.display="none";
 });
 document.getElementById(name).style.display="block";
